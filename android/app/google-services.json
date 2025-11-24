@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "71452640804",
+    "project_id": "appnotebuy",
+    "storage_bucket": "appnotebuy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71452640804:android:441fa65be881f409e1bab1",
+        "android_client_info": {
+          "package_name": "com.example.ghi_no"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVIDHCGdypnltCGBOeAj-6VEjQElpK_vY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

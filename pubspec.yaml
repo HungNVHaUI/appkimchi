@@ -1,0 +1,84 @@
+name: ghi_no
+description: "App ghi nợ"
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.2
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+  # Utility Packages
+  http: ^1.1.0
+  intl: ^0.18.1
+  logger: ^2.0.1
+  flutter_native_splash: ^2.3.2
+  smooth_page_indicator: ^1.1.0
+  lottie: ^2.7.0
+  # Firebase
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.4.14
+  cloud_firestore: ^4.13.6
+
+  #icon
+  iconsax: ^0.0.8
+  cupertino_icons: ^1.0.2
+
+  # State management
+  get: ^4.6.5
+
+flutter:
+  uses-material-design: true
+
+  #______________ LOCAL ASSETS ____________#
+  assets:
+    - assets/logos/
+    - assets/icons/
+    - assets/images/onboarding/
+    - assets/images/verification/
+    - assets/icons/categories/
+    - assets/images/banners/
+    - assets/images/products/
+    - assets/images/account/
+    - assets/images/products/esp_8266/
+    - assets/images/reviews/
+    - assets/images/payment-method/
+    - assets/lottieFile/
+
+  #______________ LOCAL FONTS ____________#
+  fonts:
+    - family: poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 800
