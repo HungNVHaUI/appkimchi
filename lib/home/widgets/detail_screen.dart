@@ -135,92 +135,99 @@ class NoteDetailScreen extends StatelessWidget {
             )),
             const SizedBox(height: TSizes.spaceBtwSections),
 
-            Row(
-              children: [
-                /// Nút Thanh Toán
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Xác nhận'),
-                          content: Text(
-                            tempDebt.value
-                                ? 'Bạn có chắc muốn đánh dấu hóa đơn là đã thanh toán?'
-                                : 'Bạn có chắc muốn đánh dấu hóa đơn là đang nợ?',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Hủy'),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(context);
-                                try {
-                                  final newDebt = !tempDebt.value;
-                                  await FirebaseFirestore.instance
-                                      .collection('notes')
-                                      .doc(note.id)
-                                      .update({'debt': newDebt});
-                                  tempDebt.value = newDebt; // update UI ngay
-                                } catch (e) {
-                                  Get.snackbar('Lỗi', 'Không thể cập nhật: $e');
-                                }
-                              },
-                              child: const Text('Xác nhận'),
-                            ),
-                          ],
+        Row(
+          children: [
+            /// Nút Thanh Toán
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Xác nhận'),
+                      content: Text(
+                        tempDebt.value
+                            ? 'Bạn có chắc muốn đánh dấu hóa đơn là đã thanh toán?'
+                            : 'Bạn có chắc muốn đánh dấu hóa đơn là đang nợ?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Hủy'),
                         ),
-                      );
-                    },
-                    child: Obx(() => const Text('Thanh toán')),
-                  ),
-                ),
-                const SizedBox(width: TSizes.md),
+                        TextButton(
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            try {
+                              final newDebt = !tempDebt.value;
+                              await FirebaseFirestore.instance
+                                  .collection('notes')
+                                  .doc(note.id)
+                                  .update({'debt': newDebt});
 
-                /// Nút Xóa
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Xác nhận'),
-                          content: const Text('Bạn có chắc muốn xóa hóa đơn này không?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Hủy'),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(context);
-                                try {
-                                  await FirebaseFirestore.instance
-                                      .collection('notes')
-                                      .doc(note.id)
-                                      .delete();
-                                  Get.back(); // quay lại màn trước
-                                } catch (e) {
-                                  Get.snackbar('Lỗi', 'Không thể xóa: $e');
-                                }
-                              },
-                              child: const Text('Xóa'),
-                            ),
-                          ],
+                              tempDebt.value = newDebt; // cập nhật ngay
+                            } catch (e) {
+                              Get.snackbar('Lỗi', 'Không thể cập nhật: $e');
+                            }
+                          },
+                          child: const Text('Xác nhận'),
                         ),
-                      );
-                    },
-                    child: const Text('Xóa'),
-                  ),
-                ),
-              ],
+                      ],
+                    ),
+                  );
+                },
+
+                /// DÙNG OBX NHƯ NÀY MỚI ĐÚNG
+                child: Obx(() => Text(
+                  tempDebt.value ? 'Thanh toán' : 'Ghi nợ',
+                )),
+              ),
+            ),
+
+            const SizedBox(width: TSizes.md),
+
+            /// Nút Xóa
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Xác nhận'),
+                      content: const Text('Bạn có chắc muốn xóa hóa đơn này không?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Hủy'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            try {
+                              await FirebaseFirestore.instance
+                                  .collection('notes')
+                                  .doc(note.id)
+                                  .delete();
+                              Get.back();
+                            } catch (e) {
+                              Get.snackbar('Lỗi', 'Không thể xóa: $e');
+                            }
+                          },
+                          child: const Text('Xóa'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: const Text('Xóa'),
+              ),
             ),
           ],
+        )
+
+        ],
         ),
       ),
     );

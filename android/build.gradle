@@ -16,3 +16,12 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+// 💥 PHẦN KHẮC PHỤC LỖI JDKIMAGETRANSFORM 💥
+// Đoạn này đảm bảo các task biên dịch Java sử dụng cấp độ Java 11 (hoặc 17, tùy môi trường)
+// Điều này giúp giải quyết lỗi liên quan đến JdkImageTransform và các package như shared_preferences.
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Xlint:deprecation"
+    // Bắt buộc sử dụng target Java 11
+    options.release.set(17)
+}

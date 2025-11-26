@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ghi_no/home/widgets/home_appbar.dart';
+import '../create_note/all_note.dart';
 import '../create_note/create_note.dart';
 import '../fill/fill_controller.dart';
+import '../key/key_check_screen.dart';
+import '../key/key_controller.dart';
+import '../key/key_screen.dart';
+import '../key/license_checker.dart';
 import '../theme/constants/container/header_container.dart';
 import '../theme/constants/container/search_container.dart';
 import '../theme/constants/sizes.dart';
+import '../theme/constants/text_strings.dart';
 import '../theme/constants/texts/section_heading.dart';
 
-import 'home_screen.dart';
+import 'list_note_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,10 +53,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.only(left: TSizes.defaultSpace),
                   child: TSectionHeading(
                     title: "Danh Sách Khách",
-                    showActionButton: true,
+                    showActionButton: false,
                     textColor: Colors.white,
                     onPressed: () =>
-                        Get.to(() => const CreateNoteScreen()),
+                        Get.to(() => AllNoteScreen()),
                   ),
                 ),
 
@@ -73,9 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 top: 0,
               ),
               /// Truyền tháng năm xuống ListNotesWidget
-              child: ListNotesWidget(),
+              child: ListNotesPage(),
+
             ),
           ),
+
+
         ],
       ),
     );

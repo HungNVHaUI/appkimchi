@@ -27,7 +27,7 @@ class TTexts {
   static const String rememberMe = "Remember Me";
   static const String forgetPassword = "Forget Password?";
   static const String signIn = "Sign In";
-  static const String createNote = "Thêm";
+  static const String createNote = "Lưu Thông Tin";
   static const String orSignInWith = "or sign in with";
   static const String orcreate_noteWith = "or sign up with";
   static const String debt = "Khách hàng ghi nợ";
@@ -48,7 +48,7 @@ class TTexts {
 
   static const String loginTitle = "Welcome back,";
   static const String loginSubTitle = "Discover Limitless Choices and Unmatched Convenience.";
-  static const String createNoteTitle = "Let's create your account";
+  static const String createNoteTitle = "Lưu Khách Mua Hàng";
   static const String forgetPasswordTitle = "Forget password";
   static const String forgetPasswordSubTitle = "Don't worry sometimes people can forget too, enter your email and we will "
       "send you a password reset link";

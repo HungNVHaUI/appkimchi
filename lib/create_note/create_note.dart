@@ -11,20 +11,21 @@ class CreateNoteScreen extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(),
-      body: SingleChildScrollView(
+      appBar: AppBar(
+        title: Text(TTexts.createNoteTitle, style: Theme.of(context).textTheme.headlineMedium),
+        centerTitle: true,
+        backgroundColor: Colors.transparent, // Nền trong suốt
+        elevation: 0,
+      ),
+      body: const SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(TSizes.defaultSpace),
+          padding: EdgeInsets.all(TSizes.defaultSpace),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ///Title
-              Text(TTexts.createNoteTitle, style: Theme.of(context).textTheme.headlineMedium,),
-              const SizedBox(height: TSizes.spaceBtwItems),
+              SizedBox(height: TSizes.spaceBtwItems),
               ///Form
-              const CreateNoteForm(),
-
-
+              CreateNoteForm(),
             ],
           ),
         ),

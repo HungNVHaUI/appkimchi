@@ -49,6 +49,7 @@ class NoteModel {
           ? (data['totalAll'] as int).toDouble()
           : data['totalAll'] ?? 0.0,
       createdAt: createdDate,
+      phoneNumber: data['phoneNumber'] ?? '',
       debt: data['debt'] ?? false,
       products: products,
     );

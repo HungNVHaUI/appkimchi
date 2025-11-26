@@ -4,7 +4,10 @@ import 'package:ghi_no/theme/constants/colors.dart';
 import 'package:ghi_no/theme/helpers/helper_functions.dart';
 import 'package:iconsax/iconsax.dart';
 
+import 'create_note/all_note.dart';
+import 'create_note/create_note.dart';
 import 'home/home.dart';
+import 'key/key_screen.dart';
 
 
 class NavigationMenu extends StatelessWidget {
@@ -26,9 +29,9 @@ class NavigationMenu extends StatelessWidget {
             indicatorColor: dark ? TColors.black.withOpacity(0.1) : TColors.white.withOpacity(0.1),
             destinations: const [
               NavigationDestination(icon: Icon(Iconsax.home), label: 'Home'),
-              NavigationDestination(icon: Icon(Iconsax.shop), label: 'Store'),
-              NavigationDestination(icon: Icon(Iconsax.heart), label: 'Wishlist'),
-              NavigationDestination(icon: Icon(Iconsax.user), label: 'Profile'),
+              NavigationDestination(icon: Icon(Iconsax.save_add), label: 'Save'),
+              NavigationDestination(icon: Icon(Iconsax.bookmark), label: 'All'),
+              NavigationDestination(icon: Icon(Iconsax.key), label: 'Key'),
             ],
           ),
       ),
@@ -42,8 +45,10 @@ class NavigationController extends GetxController{
   final Rx<int> selectedIndex = 0.obs;
   final screens = [
     const HomeScreen(),
-    // const StoreScreen(),
-    // const FavouriteScreen(),
+    const CreateNoteScreen(),
+    AllNoteScreen(),
+    KeyScreen(),
+
     // const SettingScreen()
   ];
 }

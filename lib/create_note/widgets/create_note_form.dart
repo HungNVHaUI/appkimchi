@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import '../../theme/constants/colors.dart';
 import '../../theme/constants/sizes.dart';
 import '../../theme/constants/text_strings.dart';
 import '../../theme/constants/texts/section_heading.dart';
@@ -37,99 +38,102 @@ class CreateNoteForm extends StatelessWidget {
           TextFormField(
             controller: controller.phoneNumber,
             //validator: (val) => TValidator.validatePhoneNumber(val),
-            decoration: const InputDecoration(
+            keyboardType: TextInputType.phone, // Nên dùng keyboardType: phone
+            decoration: InputDecoration(
               labelText: TTexts.phoneNumber,
-              prefixIcon: Icon(Iconsax.call),
+              prefixIcon: const Icon(Iconsax.call),
+              // 🔹 THÊM ICON DANH BẠ 🔹
+              suffixIcon: IconButton(
+                icon: Icon(Iconsax.archive_book, color: TColors.primary),
+                // Giả định bạn có hàm selectContact() trong controller
+                onPressed: () => controller.selectContact(),
+              ),
             ),
           ),
           const SizedBox(height: TSizes.spaceBtwSections),
 
           /// Section heading (hiển thị/ẩn Row thêm sản phẩm)
-          TSectionHeading(
+          const TSectionHeading(
             title: "Danh Sách Mua",
-            showActionButton: true,
-            onPressed: () => controller.showProductRow.value = !controller.showProductRow.value,
+            showActionButton: false,
           ),
+          const SizedBox(height: TSizes.spaceRowItems),
 
           /// Row nhập sản phẩm
-          Obx(() => controller.showProductRow.value
-              ? Column(
-                  children: [
-                    TextFormField(
-                      controller: controller.createProductName,
-                      //validator: (val) => TValidator.validatePhoneNumber(val),
+          Column(
+            children: [
+              TextFormField(
+                controller: controller.createProductName,
+                //validator: (val) => TValidator.validatePhoneNumber(val),
+                decoration: const InputDecoration(
+                  labelText: TTexts.createProductName,
+                  prefixIcon: Icon(Iconsax.cards),
+                ),
+              ),
+              const SizedBox(height: TSizes.spaceRowItemsSmail),
+              Row(
+                children: [
+                  // GIÁ (30%)
+                  Flexible(
+                    flex: 3,
+                    child: TextFormField(
+                      controller: controller.createPrice,
+                      //validator: (valve) => TValidator.validateEmptyText('Giá', valve),
+                      keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        labelText: TTexts.createProductName,
-                        prefixIcon: Icon(Iconsax.cards),
-                      ),
+                          labelText: TTexts.createPrice),
+                      onChanged: (value) {
+                        // Format tiền khi gõ (1,000 – 12,000 – 1,200,000)
+                        final number = value.replaceAll(',', '');
+                        if (number.isNotEmpty) {
+                          final formatted = NumberFormat('#,###')
+                              .format(int.parse(number));
+                          controller.createPrice.value = TextEditingValue(
+                            text: formatted,
+                            selection: TextSelection.collapsed(
+                                offset: formatted.length),
+                          );
+                        }
+                      },
                     ),
-                    const SizedBox(height: TSizes.spaceRowItemsSmail),
-                    Row(
-                      children: [
-                        // GIÁ (30%)
-                        Flexible(
-                          flex: 3,
-                          child: TextFormField(
-                            controller: controller.createPrice,
-                            //validator: (valve) => TValidator.validateEmptyText('Giá', valve),
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                                labelText: TTexts.createPrice),
-                            onChanged: (value) {
-                              // Format tiền khi gõ (1,000 – 12,000 – 1,200,000)
-                              final number = value.replaceAll(',', '');
-                              if (number.isNotEmpty) {
-                                final formatted = NumberFormat('#,###')
-                                    .format(int.parse(number));
-                                controller.createPrice.value = TextEditingValue(
-                                  text: formatted,
-                                  selection: TextSelection.collapsed(
-                                      offset: formatted.length),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: TSizes.spaceRowItems),
-                        // SỐ LƯỢNG (20%)
-                        Flexible(
-                          flex: 2,
-                          child: TextFormField(
-                            controller: controller.createQty,
-                            //validator: (valve) => TValidator.validateEmptyText('Qty', valve),
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                                labelText: TTexts.createQty),
-                          ),
-                        ),
-                        const SizedBox(width: TSizes.spaceRowItems),
-                        // TỔNG (40%) – TỰ TÍNH, KHÔNG CHO NHẬP
-                        Flexible(
-                          flex: 4,
-                          child: TextFormField(
-                            controller: controller.createTotal,
-                            readOnly: true, // Quan trọng!
-                            decoration: const InputDecoration(
-                                labelText: TTexts.createTotal),
-                          ),
-                        ),
-                        const SizedBox(width: TSizes.spaceRowItemsSmail),
-                        // Nút thêm sản phẩm
-                        Flexible(
-                          flex: 1,
-                          child: ElevatedButton(
-                            onPressed: () => controller.addProduct(),
-                            child: const Icon(Icons.check),
-                          ),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(width: TSizes.spaceRowItems),
+                  // SỐ LƯỢNG (20%)
+                  Flexible(
+                    flex: 2,
+                    child: TextFormField(
+                      controller: controller.createQty,
+                      //validator: (valve) => TValidator.validateEmptyText('Qty', valve),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                          labelText: TTexts.createQty),
                     ),
-                  ],
-                )
-              : Container()),
+                  ),
+                  const SizedBox(width: TSizes.spaceRowItems),
+                  // TỔNG (40%) – TỰ TÍNH, KHÔNG CHO NHẬP
+                  Flexible(
+                    flex: 4,
+                    child: TextFormField(
+                      controller: controller.createTotal,
+                      readOnly: true, // Quan trọng!
+                      decoration: const InputDecoration(
+                          labelText: TTexts.createTotal),
+                    ),
+                  ),
+                  const SizedBox(width: TSizes.spaceRowItemsSmail),
+                  // Nút thêm sản phẩm
+                  Flexible(
+                    flex: 1,
+                    child: ElevatedButton(
+                      onPressed: () => controller.addProduct(),
+                      child: const Icon(Icons.check),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
 
-
-          // Hiển thị danh sách sản phẩm đã thêm
           Obx(() => controller.productList.isNotEmpty ?
           Column(
             children: controller.productList.asMap().entries.map((entry) {
@@ -213,7 +217,10 @@ class CreateNoteForm extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => controller.create_note(),
-              child: const Text(TTexts.createNote),
+              child: const Text(
+                TTexts.createNote,
+              ),
+
             ),
           ),
         ],

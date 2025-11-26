@@ -1,12 +1,16 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // thêm Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../home/home.dart';
+import '../theme/constants/colors.dart';
 import '../theme/constants/image_strings.dart';
 import '../theme/constants/popups/full_screen_loader.dart';
 import '../theme/constants/popups/loaders.dart';
 import 'model/product_model.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 
 class CreateNoteController extends GetxController {
   static CreateNoteController get instance => Get.find();
@@ -76,6 +80,54 @@ class CreateNoteController extends GetxController {
     }
   }
 
+  // 🔹 HÀM MỚI ĐƯỢC THÊM 🔹
+  void selectContact() async {
+    // 1. Kiểm tra và Yêu cầu quyền truy cập danh bạ
+    final status = await Permission.contacts.request();
+
+    if (status.isGranted) {
+
+      try {
+        final Contact? contact = await FlutterContacts.openExternalPick();
+
+        if (contact != null && contact.phones.isNotEmpty) {
+          final String? selectedNumber = contact.phones.first.number;
+
+          if (selectedNumber != null) {
+            // 1. Lọc chỉ giữ lại số
+            String cleanNumber = selectedNumber.replaceAll(RegExp(r'[^\d]'), '');
+
+            // 2. Chuẩn hóa: Chuyển đổi 84 thành 0
+            if (cleanNumber.startsWith('84') && cleanNumber.length >= 10) {
+              cleanNumber = '0' + cleanNumber.substring(2);
+            }
+
+            // 3. Cập nhật Controller
+            this.phoneNumber.text = cleanNumber;
+
+          }
+        } else {
+          Get.snackbar('Thông báo', 'Không tìm thấy số điện thoại hoặc người dùng đã hủy.');
+        }
+      } catch (e) {
+        Get.snackbar('Lỗi', 'Không thể mở danh bạ. Vui lòng kiểm tra cài đặt plugin.');
+      }
+
+    } else if (status.isDenied) {
+      // Người dùng từ chối quyền
+      Get.snackbar('Lỗi', 'Bạn đã từ chối quyền truy cập Danh bạ.');
+    } else if (status.isPermanentlyDenied) {
+      // Người dùng từ chối vĩnh viễn, hướng dẫn họ mở Cài đặt
+      Get.snackbar('Lỗi', 'Cần cấp quyền trong Cài đặt.',
+          mainButton: TextButton(
+            onPressed: () => openAppSettings(), // Mở Cài đặt ứng dụng
+            child: const Text('Cài đặt', style: TextStyle(color: TColors.warning)),
+          )
+      );
+    }
+  }
+  // ------------------------------------
+
   /// Lưu phiếu lên Firestore
   Future<void> create_note() async {
     try {
@@ -92,18 +144,17 @@ class CreateNoteController extends GetxController {
       // Convert productList sang Map
       final products = productList
           .map((p) => {
-            "name": p.nameProduct,
-            "price": p.price,
-            "qty": p.qty,
-            "total": p.total,
-            "debt": isDebt.value,
-          })
-            .toList();
+        "name": p.nameProduct,
+        "price": p.price,
+        "qty": p.qty,
+        "total": p.total,
+      })
+          .toList();
 
-      // Tổng tiền tất cả sản phẩm
+      // Tính Tổng tiền tất cả sản phẩm
       final totalAll = products.fold<double>(
         0,
-            (sum, p) => sum + (p['total'] != null ? (p['total'] as num).toDouble() : 0),
+            (sum, p) => sum + (p['total'] as double),
       );
 
       // Tạo dữ liệu document
@@ -112,10 +163,9 @@ class CreateNoteController extends GetxController {
         "clientName": clientName.text.trim(),
         "phoneNumber": phoneNumber.text.trim(),
         "debt": isDebt.value,
-        "createdAt": DateTime.now(),
         "totalAll": totalAll,
         "products": products,
-        "createdAt": now.toIso8601String(),
+        "createdAt": now,
       };
 
       // Ghi lên Firestore
@@ -134,8 +184,8 @@ class CreateNoteController extends GetxController {
       phoneNumber.clear();
       productList.clear();
       isDebt.value = false;
-      // Quay về màn hình Home
 
+      // Quay về màn hình Home
       Get.to(() => const HomeScreen());
     } catch (e) {
       TFullScreenLoader.stopLoading();
