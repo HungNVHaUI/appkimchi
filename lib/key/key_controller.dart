@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../home/home.dart';
 import '../home/list_note_page.dart';
+import '../navigation_menu.dart';
 import '../theme/constants/colors.dart'; // import HomeScreen
 
 class KeyController extends GetxController {
@@ -64,7 +65,7 @@ class KeyController extends GetxController {
       if (!isKeyExpired.value) {
         Get.snackbar('Thành công', 'Key đã được kích hoạt thành công!', snackPosition: SnackPosition.BOTTOM, colorText: TColors.white, backgroundColor: TColors.success);
         // Chuyển sang HomeScreen
-        Get.offAll(() => const HomeScreen());
+        Get.offAll(() => const NavigationMenu());
       } else {
         // Nếu isKeyExpired là true ngay sau khi lưu (Key có thời hạn ngắn hơn thời gian tính toán/key hết hạn)
         Get.snackbar('Lỗi', 'Key không hợp lệ hoặc đã hết hạn', snackPosition: SnackPosition.BOTTOM);

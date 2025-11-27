@@ -12,6 +12,7 @@ class CreateNoteScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(TTexts.createNoteTitle, style: Theme.of(context).textTheme.headlineMedium),
         centerTitle: true,
         backgroundColor: Colors.transparent, // Nền trong suốt

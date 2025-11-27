@@ -23,6 +23,7 @@ class KeyScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(
           'Quản lý Key bản quyền',
             style: Theme.of(context).textTheme.headlineMedium
@@ -55,7 +56,7 @@ class KeyScreen extends StatelessWidget {
             const SizedBox(height: TSizes.sm),
 
             // 🔹 Thời gian còn lại
-            Obx(() => Text(
+            /*Obx(() => Text(
               controller.remainingTimeText.value,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium!.copyWith( // Thường dùng titleMedium/titleLarge thay vì headlineMedium
@@ -63,7 +64,7 @@ class KeyScreen extends StatelessWidget {
                 color: controller.isKeyExpired.value ? TColors.warning : TColors.success,
               ),
             ),
-            ),
+            ),*/
             const SizedBox(height: TSizes.spaceBtwSections),
 
             // 🔹 Input Field Key

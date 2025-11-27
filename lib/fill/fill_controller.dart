@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import '../home/model/note_model.dart';
+import 'package:intl/intl.dart';
 
 class FillController extends GetxController {
   /// ------------------------------
@@ -91,6 +92,17 @@ class FillController extends GetxController {
 
     return filtered;
   }
+  double get totalAllFiltered {
+    return filteredNotes.fold(
+      0.0,
+          (sum, item) => sum + (item.totalAll ?? 0.0),
+    );
+  }
+  String get totalAllFilteredFormatted {
+    final total = totalAllFiltered;
+    return NumberFormat.decimalPattern('vi_VN').format(total);
+  }
+
 
   /// ------------------------------
   /// 🔹 Clear filter

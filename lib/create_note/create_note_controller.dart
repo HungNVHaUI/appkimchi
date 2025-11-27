@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../home/home.dart';
+import '../navigation_menu.dart';
 import '../theme/constants/colors.dart';
 import '../theme/constants/image_strings.dart';
 import '../theme/constants/popups/full_screen_loader.dart';
@@ -186,7 +187,7 @@ class CreateNoteController extends GetxController {
       isDebt.value = false;
 
       // Quay về màn hình Home
-      Get.to(() => const HomeScreen());
+      Get.to(() => const NavigationMenu());
     } catch (e) {
       TFullScreenLoader.stopLoading();
       TLoaders.errorSnackBar(title: 'Lỗi', message: e.toString());
