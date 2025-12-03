@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../create_note/model/note_model.dart';
 import '../../theme/constants/colors.dart';
 import '../../theme/constants/sizes.dart';
 import '../../theme/helpers/helper_functions.dart';
-import '../model/note_model.dart';
-import 'detail_screen.dart'; // Đảm bảo đường dẫn này đúng
+import 'note_detail_screen.dart'; // Đảm bảo đường dẫn này đúng
 
 class NoteItemCard extends StatelessWidget {
   final NoteModel note;

@@ -1,9 +1,6 @@
-// File: ghi_no/home/widgets/notes_list_view.dart
-
 import 'package:flutter/material.dart';
-
+import '../../create_note/model/note_model.dart';
 import '../../theme/constants/sizes.dart';
-import '../model/note_model.dart';
 import 'note_item_card.dart';
 
 class NotesListView extends StatelessWidget {

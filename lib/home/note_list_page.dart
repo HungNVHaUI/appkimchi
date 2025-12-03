@@ -43,7 +43,7 @@ class ListNotesPage extends StatelessWidget {
                 return const Center(child: Text("Không tìm thấy ghi chú nào."));
               }
 
-              return NotesListView(notes: notes);
+              return NotesListView(notes: notes,showCheckBox: true,);
             }),
           ),
         ],

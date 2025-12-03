@@ -19,4 +19,12 @@ class ProductModel {
       total: (map['total'] as num?)?.toDouble() ?? 0.0,
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'nameProduct': nameProduct,
+      'price': price,
+      'qty': qty,
+      'total': total,
+    };
+  }
 }

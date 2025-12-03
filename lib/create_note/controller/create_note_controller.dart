@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../home/home.dart';
-import '../navigation_menu.dart';
-import '../theme/constants/colors.dart';
-import '../theme/constants/image_strings.dart';
-import '../theme/constants/popups/full_screen_loader.dart';
-import '../theme/constants/popups/loaders.dart';
-import 'model/product_model.dart';
+import '../../navigation_menu.dart';
+import '../../theme/constants/colors.dart';
+import '../../theme/constants/image_strings.dart';
+import '../../theme/constants/popups/full_screen_loader.dart';
+import '../../theme/constants/popups/loaders.dart';
+import '../model/product_model.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
@@ -65,7 +64,7 @@ class CreateNoteController extends GetxController {
     final price = _parseNumber(createPrice.text);
     final qty = _parseNumber(createQty.text);
 
-    if (price > 0 && qty > 0) {
+    if (qty > 0) {
       final total = price * qty;
       productList.add(ProductModel(
           nameProduct: createProductName.text,
@@ -179,7 +178,6 @@ class CreateNoteController extends GetxController {
       /// Success message
       TLoaders.successSnackBar(
           title: 'Thành công', message: 'Phiếu đã được tạo');
-
       // Reset form
       clientName.clear();
       phoneNumber.clear();
@@ -187,7 +185,7 @@ class CreateNoteController extends GetxController {
       isDebt.value = false;
 
       // Quay về màn hình Home
-      Get.to(() => const NavigationMenu());
+      Get.find<NavigationController>().selectedIndex.value = 0;
     } catch (e) {
       TFullScreenLoader.stopLoading();
       TLoaders.errorSnackBar(title: 'Lỗi', message: e.toString());

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +7,7 @@ import '../../theme/constants/colors.dart';
 import '../../theme/constants/sizes.dart';
 import '../../theme/constants/text_strings.dart';
 import '../../theme/constants/texts/section_heading.dart';
-import '../create_note_controller.dart';
+import '../controller/create_note_controller.dart';
 import '../debt_checkbox.dart';
 import '../validation.dart';
 
@@ -78,22 +79,44 @@ class CreateNoteForm extends StatelessWidget {
                     flex: 3,
                     child: TextFormField(
                       controller: controller.createPrice,
-                      //validator: (valve) => TValidator.validateEmptyText('Giá', valve),
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                           labelText: TTexts.createPrice),
+
+                      // ❌ XÓA inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      // Thay thế bằng logic kiểm tra trong onChanged
+
                       onChanged: (value) {
-                        // Format tiền khi gõ (1,000 – 12,000 – 1,200,000)
-                        final number = value.replaceAll(',', '');
-                        if (number.isNotEmpty) {
-                          final formatted = NumberFormat('#,###')
-                              .format(int.parse(number));
+                        // 1. Loại bỏ tất cả dấu phân cách (chấm, phẩy) để có chuỗi số thuần túy.
+                        final numberString = value.replaceAll(RegExp(r'[,\.]'), '');
+
+                        // 2. Kiểm tra xem chuỗi còn lại có phải là số nguyên hợp lệ hay không
+                        final numberInt = int.tryParse(numberString);
+
+                        if (numberInt != null) {
+                          // 3. Định dạng lại: Ép dùng locale 'vi_VN'
+                          final formatted = NumberFormat('#,###', 'vi_VN')
+                              .format(numberInt);
+
+                          // 4. Cập nhật Controller (giữ focus)
                           controller.createPrice.value = TextEditingValue(
                             text: formatted,
                             selection: TextSelection.collapsed(
                                 offset: formatted.length),
                           );
+
+                          // Cập nhật tổng tiền (Giả định bạn có gọi hàm này)
+                          // controller.calculateTotal();
+
+                        } else if (value.isEmpty) {
+                          // Xử lý khi xóa hết
+                          controller.createPrice.value = TextEditingValue(text: '');
+                          // controller.calculateTotal();
                         }
+
+                        // 💡 KHÔNG cần xử lý trường hợp numberInt == null (khi có ký tự lạ)
+                        // vì chúng ta chỉ cập nhật controller khi là số hợp lệ.
+                        // Nếu người dùng nhập ký tự không phải số, text sẽ không thay đổi.
                       },
                     ),
                   ),
@@ -122,10 +145,17 @@ class CreateNoteForm extends StatelessWidget {
                   ),
                   const SizedBox(width: TSizes.spaceRowItemsSmail),
                   // Nút thêm sản phẩm
+                  // Nút thêm sản phẩm
                   Flexible(
                     flex: 1,
                     child: ElevatedButton(
-                      onPressed: () => controller.addProduct(),
+                      onPressed: () {
+                        // 1. Ẩn bàn phím ảo
+                        FocusScope.of(context).unfocus();
+
+                        // 2. Gọi hàm thêm sản phẩm
+                        controller.addProduct();
+                      },
                       child: const Icon(Icons.check),
                     ),
                   ),

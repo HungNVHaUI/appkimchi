@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ghi_no/home/widgets/filter_dropdowns.dart';
 import '../../fill/fill_controller.dart';
-import '../home/widgets/home_appbar.dart';
 import '../theme/constants/colors.dart';
 import '../theme/constants/container/header_container.dart';
 import '../theme/constants/container/search_container.dart';
 import '../theme/constants/sizes.dart';
 import '../theme/constants/text_strings.dart';
-import '../theme/constants/texts/section_heading.dart';
+import 'package:intl/intl.dart';
+
+import '../theme/helpers/helper_functions.dart';
+
 
 class AllNoteScreen extends StatelessWidget {
   AllNoteScreen({super.key});
@@ -17,8 +19,9 @@ class AllNoteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<FillController>();
     // Lấy theme để điều chỉnh màu sắc nếu cần
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = THelperFunctions.isDarkMode(context);
 
     return Scaffold(
       body: Column(
@@ -47,7 +50,8 @@ class AllNoteScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: TSizes.spaceBtwSections),
                 Padding(
-                  padding: EdgeInsets.only(left: TSizes.spaceBtwItems, right: TSizes.spaceBtwItems),
+                  padding: EdgeInsets.only(
+                      left: TSizes.spaceBtwItems, right: TSizes.spaceBtwItems),
                   child: Row(
                     children: [
                       Expanded(
@@ -57,14 +61,10 @@ class AllNoteScreen extends StatelessWidget {
                                       color: TColors.white,
                                     )),
                       ),
-                      Obx(() {
-                        return Text(
-                            "Tổng: ${controller.totalAllFilteredFormatted}",
-                            style:
-                                Theme.of(context).textTheme.titleSmall!.apply(
-                                      color: TColors.white,
-                                    ));
-                      }),
+                      Obx(() => Text(
+                            "Tổng: ${NumberFormat.currency(locale: 'vi_VN', symbol: '').format(controller.totalSelected.value)}",
+                        style: Theme.of(context).textTheme.titleMedium!.apply(color: TColors.white),
+                          )),
                     ],
                   ),
                 ),
@@ -119,7 +119,7 @@ class AllNoteScreen extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.only(
                     left: TSizes.defaultSpace, right: TSizes.defaultSpace),
-                child: NotesListView(notes: notes),
+                child: NotesListView(notes: notes,showCheckBox: true,),
               );
             }),
           ),

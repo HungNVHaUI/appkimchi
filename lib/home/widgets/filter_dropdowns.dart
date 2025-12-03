@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:ghi_no/home/widgets/detail_screen.dart'; //
+import 'package:ghi_no/home/widgets/note_detail_screen.dart'; //
+import 'package:ghi_no/home/widgets/selectable_checkbox.dart';
 import 'package:intl/intl.dart';
+import '../../create_note/model/note_model.dart';
 import '../../fill/fill_controller.dart';
 import '../../theme/constants/colors.dart';
 import '../../theme/constants/sizes.dart';
 import '../../theme/helpers/helper_functions.dart';
-import '../model/note_model.dart';
 
 class ListNotesWidget extends StatelessWidget {
   const ListNotesWidget({super.key});
@@ -47,7 +48,7 @@ class ListNotesWidget extends StatelessWidget {
                 return const Center(child: Text("Không tìm thấy."));
               }
 
-              return NotesListView(notes: notes);
+              return NotesListView(notes: notes, showCheckBox: false,);
             }),
           ),
         ],
@@ -109,7 +110,9 @@ class FilterDropdowns extends StatelessWidget {
 // Tách widget Danh sách
 class NotesListView extends StatelessWidget {
   final List<NoteModel> notes;
-  const NotesListView({super.key, required this.notes});
+  final bool showCheckBox;
+
+  const NotesListView({super.key, required this.notes, required this.showCheckBox});
 
   @override
   Widget build(BuildContext context) {
@@ -119,74 +122,91 @@ class NotesListView extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: TSizes.defaultSpace),
       itemBuilder: (context, index) {
         final note = notes[index];
+        final controller = Get.find<FillController>();
 
-        return InkWell(
-          onTap: () => Get.to(() => NoteDetailScreen(note: note)),
-          child: Container(
-            padding: const EdgeInsets.only(
-              left: TSizes.md,
-              right: TSizes.md,
-              bottom: 5,
-              top: 5,
-            ),
-            decoration: BoxDecoration(
-              /*color: THelperFunctions.isDarkMode(context) ? TColors.dark : TColors.light,*/
-              borderRadius: BorderRadius.circular(TSizes.borderRadiusMd),
-              border: Border.all(
-                width: 1, // độ dày viền
-                color: THelperFunctions.isDarkMode(context)
-                    ? TColors.light
-                    : TColors.dark,
+        return Obx(() {
+          final isChecked = controller.checkedMap[note.id] ?? false;
+
+          return InkWell(
+            onTap: () => Get.to(() => NoteDetailScreen(note: note)),
+            child: Container(
+              padding: const EdgeInsets.only(
+                left: TSizes.md,
+                right: TSizes.md,
+                bottom: 5,
+                top: 5,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(TSizes.borderRadiusMd),
+                border: Border.all(
+                  width: 1,
+                  color: THelperFunctions.isDarkMode(context)
+                      ? TColors.light
+                      : TColors.dark,
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                note.clientName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: TSizes.fontSizeLg,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                "Ngày: ${DateFormat('dd/MM/yyyy').format(note.createdAt)}",
+                                style: const TextStyle(fontSize: TSizes.fontSizeSm),
+                              ),
+                            ]),
+
+                        const SizedBox(height: TSizes.md),
+
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Tổng: ${NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(note.totalAll)}",
+                                style: const TextStyle(fontSize: TSizes.fontSizeSm),
+                              ),
+                              Container(
+                                width: 15,
+                                height: 15,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: note.debt ? TColors.warning : TColors.primary,
+                                ),
+                              ),
+                            ]),
+                      ],
+                    ),
+                  ),
+                  /// 🔹 THÊM CHECKBOX
+                  Container(
+                    padding: const EdgeInsets.only(top: 13,),
+                    alignment: Alignment.center,       // canh giữa widget con
+                    child: SelectableCheckbox(
+                      noteId: note.id,
+                      showCheckBox: showCheckBox,
+                    ),
+                  ),
+
+
+                ],
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        note.clientName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: TSizes.fontSizeLg,),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-
-                      ),
-                      Text(
-                        "Ngày: ${DateFormat('dd/MM/yyyy').format(note.createdAt)}",
-                        style: const TextStyle(fontSize: TSizes.fontSizeSm,),
-                      ),
-                    ]
-                ),
-
-                const SizedBox(height: TSizes.md),
-
-
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        // Sử dụng Get.locale để đảm bảo định dạng tiền tệ đúng theo locale (nếu cần)
-                        "Tổng: ${NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(note.totalAll)}",
-                        style: const TextStyle(fontSize: TSizes.fontSizeSm,),
-                      ),
-                      Container(
-                        width: 15,
-                        height: 15,
-                        decoration: BoxDecoration(
-                          // Định hình là hình tròn
-                          shape: BoxShape.circle,
-                          // Đặt màu sắc cho hình tròn
-                          color: note.debt ? TColors.warning :TColors.primary,
-                        ),
-                      ),
-                    ]
-                )
-
-              ],
-            ),
-          ),
-        );
+          );
+        });
       },
     );
   }

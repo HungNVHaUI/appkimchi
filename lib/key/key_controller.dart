@@ -1,21 +1,18 @@
-// File: key_controller.dart (Phiên bản đã tối ưu và sửa lỗi)
-
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../home/home.dart';
-import '../home/list_note_page.dart';
+import '../home/note_list_page.dart';
 import '../navigation_menu.dart';
 import '../theme/constants/colors.dart'; // import HomeScreen
 
-class KeyController extends GetxController {
+class KeyController extends GetxController with WidgetsBindingObserver {
   // 1. Thêm thuộc tính Reactive cho ngày hết hạn thực tế
   final expireDate = Rxn<DateTime>();
 
   var isLoading = false.obs;
-  // var keyInput = ''.obs; // Không cần thiết nếu dùng TextEditingController
   var remainingTimeText = '---'.obs; // để hiển thị thời gian còn lại
   var expireDateText = 'Chưa kích hoạt'.obs; // để hiển thị ngày hết hạn
 
@@ -26,18 +23,30 @@ class KeyController extends GetxController {
   /// Kiểm tra xem Key đã hết hạn chưa. Trả về true nếu ngày hết hạn đã qua.
   RxBool get isKeyExpired {
     if (expireDate.value == null) {
-      // Nếu chưa có ngày hết hạn (chưa kích hoạt/key lỗi), coi như chưa hết hạn
       return false.obs;
     }
-    // Trả về true nếu ngày hết hạn đã qua DateTime.now()
     return expireDate.value!.isBefore(DateTime.now()).obs;
   }
 
   @override
   void onInit() {
     super.onInit();
-    // Gọi hàm tính toán thời gian khi Controller được khởi tạo
-    fetchRemainingTime();
+    WidgetsBinding.instance.addObserver(this); // Đăng ký observer
+    fetchRemainingTime(); // check key khi khởi tạo
+  }
+
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this); // bỏ observer khi đóng
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Khi app trở lại foreground
+      fetchRemainingTime();
+    }
   }
 
   /// Lưu key vào document id "1"
@@ -53,7 +62,7 @@ class KeyController extends GetxController {
       // 1. Lưu key vào Firestore
       await firestore.collection('key_active').doc('1').set({
         'keyValue': keyController.text,
-        'createdAt': DateTime.now(), // lưu cả giờ/phút/giây
+        'createdAt': DateTime.now(),
       });
 
       keyController.clear();
@@ -63,14 +72,16 @@ class KeyController extends GetxController {
 
       // 3. Kiểm tra trạng thái Key sau khi lưu
       if (!isKeyExpired.value) {
-        Get.snackbar('Thành công', 'Key đã được kích hoạt thành công!', snackPosition: SnackPosition.BOTTOM, colorText: TColors.white, backgroundColor: TColors.success);
+        Get.snackbar('Thành công', 'Key đã được kích hoạt thành công!',
+            snackPosition: SnackPosition.BOTTOM,
+            colorText: TColors.white,
+            backgroundColor: TColors.success);
         // Chuyển sang HomeScreen
         Get.offAll(() => const NavigationMenu());
       } else {
-        // Nếu isKeyExpired là true ngay sau khi lưu (Key có thời hạn ngắn hơn thời gian tính toán/key hết hạn)
-        Get.snackbar('Lỗi', 'Key không hợp lệ hoặc đã hết hạn', snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar('Lỗi', 'Key không hợp lệ hoặc đã hết hạn',
+            snackPosition: SnackPosition.BOTTOM);
       }
-
     } catch (e) {
       Get.snackbar('Lỗi', 'Không thể lưu key: $e', snackPosition: SnackPosition.BOTTOM);
     } finally {
@@ -85,7 +96,7 @@ class KeyController extends GetxController {
       if (!doc.exists) {
         remainingTimeText.value = "Chưa có key";
         expireDateText.value = "Chưa kích hoạt";
-        expireDate.value = null; // Cập nhật ngày hết hạn là null
+        expireDate.value = null;
         return;
       }
 
@@ -96,10 +107,10 @@ class KeyController extends GetxController {
       if (parts.length != 2) throw Exception("Format Key không hợp lệ.");
 
       final base64Part = parts[0];
-      // Xử lý base64 an toàn hơn
       String raw;
       try {
-        final paddedBase64 = base64Part.padRight(base64Part.length + (4 - base64Part.length % 4) % 4, '=');
+        final paddedBase64 =
+        base64Part.padRight(base64Part.length + (4 - base64Part.length % 4) % 4, '=');
         raw = String.fromCharCodes(base64Url.decode(paddedBase64));
       } catch (e) {
         throw Exception("Lỗi giải mã Base64.");
@@ -118,22 +129,18 @@ class KeyController extends GetxController {
       } else if (mode == "D") {
         calculatedExpireDate = createdAt.add(Duration(days: amount));
       } else if (mode == "M") {
-        // Ước tính 1 tháng = 30 ngày. Cần xem xét nếu muốn chính xác hơn
         calculatedExpireDate = createdAt.add(Duration(days: amount * 30));
       } else {
-        calculatedExpireDate = createdAt; // Key không có thời hạn
+        calculatedExpireDate = createdAt;
       }
 
-      // 3. Cập nhật Rxn<DateTime>
       expireDate.value = calculatedExpireDate;
 
       final now = DateTime.now();
       final diff = calculatedExpireDate.difference(now);
 
-      // 4. Cập nhật hiển thị UI
-      final formatter = DateFormat('dd/MM/yyyy'); // Định dạng ngày/tháng/năm
-
-      expireDateText.value = "Hết hạn: ${formatter.format(calculatedExpireDate)}"; // Định dạng gọn hơn
+      final formatter = DateFormat('dd/MM/yyyy');
+      expireDateText.value = "Hết hạn: ${formatter.format(calculatedExpireDate)}";
 
       if (diff.isNegative) {
         remainingTimeText.value = "Key đã hết hạn";
@@ -143,6 +150,10 @@ class KeyController extends GetxController {
         remainingTimeText.value = "$days ngày, $hours giờ còn lại";
       }
 
+      // Nếu key còn hạn và đang ở màn hình nhập key, tự động chuyển Home
+      if (!diff.isNegative && Get.currentRoute == '/key_screen') {
+        Get.offAll(() => const NavigationMenu());
+      }
     } catch (e) {
       expireDate.value = null;
       remainingTimeText.value = "Lỗi tính thời gian";

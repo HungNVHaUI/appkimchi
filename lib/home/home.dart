@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ghi_no/home/widgets/home_appbar.dart';
-import '../create_note/all_note.dart';
-import '../create_note/create_note.dart';
 import '../fill/fill_controller.dart';
-import '../key/key_check_screen.dart';
-import '../key/key_controller.dart';
-import '../key/key_screen.dart';
-import '../key/license_checker.dart';
+import '../theme/constants/colors.dart';
 import '../theme/constants/container/header_container.dart';
 import '../theme/constants/container/search_container.dart';
 import '../theme/constants/sizes.dart';
-import '../theme/constants/text_strings.dart';
-import '../theme/constants/texts/section_heading.dart';
-
-import 'list_note_page.dart';
+import 'package:intl/intl.dart';
+import 'note_list_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +16,6 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State<HomeScreen> {
   final controller = Get.put(FillController());
   int selectedMonth = DateTime.now().month;
@@ -40,7 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const THomeAppBar(),
                 const SizedBox(height: TSizes.spaceBtwSections),
-
                 TSearchContainer(
                   text: "Tìm khách hàng",
                   showBorder: false,
@@ -50,13 +41,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: TSizes.spaceBtwSections),
 
                 Padding(
-                  padding: const EdgeInsets.only(left: TSizes.defaultSpace),
-                  child: TSectionHeading(
-                    title: "Danh Sách Khách",
-                    showActionButton: false,
-                    textColor: Colors.white,
-                    onPressed: () =>
-                        Get.to(() => AllNoteScreen()),
+                  padding: EdgeInsets.only(
+                      left: TSizes.spaceBtwItems, right: TSizes.spaceBtwItems),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text("Danh Sách Khách",
+                            style:
+                            Theme.of(context).textTheme.titleSmall!.apply(
+                              color: TColors.white,
+                            )),
+                      ),
+                      Obx(() => Text(
+                        "Tổng: ${NumberFormat.currency(locale: 'vi_VN', symbol: '').format(controller.totalSelected.value)}",
+                        style: Theme.of(context).textTheme.titleMedium!.apply(color: TColors.white),
+                      )),
+                    ],
                   ),
                 ),
 
@@ -83,6 +83,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
             ),
           ),
+          /*ElevatedButton(
+            onPressed: () async {
+              // Hiển thị thông báo đang xử lý (tùy chọn)
+              Get.snackbar(
+                  'Đang xử lý...',
+                  'Vui lòng chờ trong giây lát.',
+                  snackPosition: SnackPosition.BOTTOM
+              );
+
+              // Gọi hàm exportToExcel từ Controller.
+              // Nếu bạn muốn xuất file đã lọc (như trong footer), hãy truyền `onlySelected: false`
+              // Nếu muốn xuất file theo checkbox, hãy truyền `onlySelected: true`
+              final path = await controller.exportToExcel(onlySelected: false);
+
+              // Xử lý kết quả trả về
+              if (path != null) {
+                Get.snackbar(
+                  'Xuất Excel Thành công!',
+                  'File đã lưu tại: $path',
+                  icon: const Icon(Icons.file_download_done),
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.green,
+                  colorText: Colors.white,
+                );
+                // Bạn có thể thêm logic mở file Excel tại đây.
+              } else {
+                Get.snackbar(
+                  'Lỗi hoặc Không có dữ liệu',
+                  'Không thể xuất file hoặc danh sách ghi chú rỗng.',
+                  icon: const Icon(Icons.error_outline),
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                );
+              }
+            },
+            child: const Text('Xuất Excel'), // Thay thế `child` bằng Widget thật
+          )*/
+
 
 
         ],

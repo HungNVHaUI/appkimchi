@@ -15,7 +15,7 @@ class App extends StatelessWidget {
       themeMode: ThemeMode.system,
       theme: TAppTheme.lightTheme,
       darkTheme: TAppTheme.darkTheme,
-      // home: const NavigationMenu(),
+       //home: const NavigationMenu(),
        home: const KeyCheckScreen(), // mở KeyCheckScreen đầu tiên
     );
   }
