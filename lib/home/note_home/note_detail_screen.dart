@@ -4,12 +4,12 @@ import 'package:ghi_no/theme/constants/colors.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
-import '../../create_note/controller/note_detail_controller.dart';
 import '../../create_note/model/note_model.dart';
 import '../../theme/constants/sizes.dart';
 import '../../theme/constants/text_strings.dart';
 import '../../theme/constants/texts/section_heading.dart';
 import '../../theme/helpers/helper_functions.dart';
+import 'note_detail_controller.dart';
 
 class NoteDetailScreen extends StatelessWidget {
   final NoteModel note;
@@ -86,18 +86,21 @@ class NoteDetailScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           // Tên sản phẩm (Không chỉnh sửa)
-                          TextFormField(
-                            controller: controller.nameControllers[index],
-                            readOnly: !controller.isEditing.value,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            onChanged: (value) {
-                              controller.updateProductPrice(index, value);
-                            },
-                            decoration: const InputDecoration(
-                              labelText: 'Tên Sản Phẩm',
-                            ),
-                          ),
+
+                          Obx(() {
+                            return TextFormField(
+                              controller: controller.nameControllers[index],
+                              readOnly: !controller.isEditing.value,
+                              keyboardType: TextInputType.text,
+                              onChanged: (value) {
+                                controller.updateProductName(index, value); // chỉnh đúng hàm
+                              },
+                              decoration: const InputDecoration(
+                                labelText: 'Tên Sản Phẩm',
+                              ),
+                            );
+                          }),
+
                           const SizedBox(height: TSizes.spaceRowItemsSmail),
 
                           // Giá, Số lượng, Tổng

@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../model/note_model.dart';
-import '../model/product_model.dart';
-import 'price_controller.dart';
+import '../../create_note/controller/price_controller.dart';
+import '../../create_note/model/note_model.dart';
+import '../../create_note/model/product_model.dart';
 
 class NoteDetailController extends GetxController {
   final NoteModel initialNote;
@@ -110,6 +110,11 @@ class NoteDetailController extends GetxController {
 
     mutableProducts[index]['total'] = newTotal;
     recalculateGrandTotal();
+    mutableProducts.refresh();
+  }
+
+  void updateProductName(int index, String value) {
+    mutableProducts[index]['nameProduct'] = value;
     mutableProducts.refresh();
   }
 

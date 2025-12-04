@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../home/home.dart';
 import '../key/key_screen.dart';
-import '../home/note_list_page.dart';
+import '../home/note_home/note_list_page.dart';
 import '../key/license_checker.dart';
 import '../navigation_menu.dart';
 import '../theme/constants/image_strings.dart';

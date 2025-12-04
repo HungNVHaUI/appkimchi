@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:ghi_no/home/widgets/note_detail_screen.dart'; //
+import 'package:ghi_no/home/note_home/note_detail_screen.dart'; //
 import 'package:ghi_no/home/widgets/selectable_checkbox.dart';
 import 'package:intl/intl.dart';
 import '../../create_note/model/note_model.dart';

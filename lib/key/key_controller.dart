@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../home/home.dart';
-import '../home/note_list_page.dart';
+import '../home/note_home/note_list_page.dart';
 import '../navigation_menu.dart';
 import '../theme/constants/colors.dart'; // import HomeScreen
 

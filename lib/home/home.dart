@@ -7,7 +7,7 @@ import '../theme/constants/container/header_container.dart';
 import '../theme/constants/container/search_container.dart';
 import '../theme/constants/sizes.dart';
 import 'package:intl/intl.dart';
-import 'note_list_page.dart';
+import 'note_home/note_list_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
