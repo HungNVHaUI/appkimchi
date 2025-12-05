@@ -45,19 +45,24 @@ class CreateNoteController extends GetxController {
   /// Tự động tính tổng = giá x số lượng
   void _calculateTotal() {
     final price = _parseNumber(createPrice.text);
-    final qty = _parseNumber(createQty.text);
+    final qty   = _parseNumber(createQty.text);
 
-    final result = price * qty;
+    final total = price * qty;
 
-    // Format kết quả và hiển thị vào ô Tổng
-    createTotal.text = _formatter.format(result);
+    createTotal.text =
+        NumberFormat('#,###', 'vi_VN').format(total);
   }
+
 
   /// Convert text có dấu phẩy → số (VD: "1,200" → 1200)
   double _parseNumber(String value) {
     if (value.isEmpty) return 0;
-    return double.tryParse(value.replaceAll(',', '')) ?? 0;
+
+    final raw = value.replaceAll(RegExp(r'[^0-9]'), '');
+
+    return raw.isEmpty ? 0 : double.parse(raw);
   }
+
 
   /// Thêm sản phẩm vào list
   void addProduct() {

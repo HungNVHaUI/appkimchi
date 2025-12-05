@@ -82,41 +82,26 @@ class CreateNoteForm extends StatelessWidget {
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                           labelText: TTexts.createPrice),
-
-                      // ❌ XÓA inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      // Thay thế bằng logic kiểm tra trong onChanged
-
                       onChanged: (value) {
-                        // 1. Loại bỏ tất cả dấu phân cách (chấm, phẩy) để có chuỗi số thuần túy.
-                        final numberString = value.replaceAll(RegExp(r'[,\.]'), '');
+                        // Xoá toàn bộ ký tự không phải số
+                        final numberString = value.replaceAll(RegExp(r'[^0-9]'), '');
 
-                        // 2. Kiểm tra xem chuỗi còn lại có phải là số nguyên hợp lệ hay không
-                        final numberInt = int.tryParse(numberString);
-
-                        if (numberInt != null) {
-                          // 3. Định dạng lại: Ép dùng locale 'vi_VN'
-                          final formatted = NumberFormat('#,###', 'vi_VN')
-                              .format(numberInt);
-
-                          // 4. Cập nhật Controller (giữ focus)
-                          controller.createPrice.value = TextEditingValue(
-                            text: formatted,
-                            selection: TextSelection.collapsed(
-                                offset: formatted.length),
-                          );
-
-                          // Cập nhật tổng tiền (Giả định bạn có gọi hàm này)
-                          // controller.calculateTotal();
-
-                        } else if (value.isEmpty) {
-                          // Xử lý khi xóa hết
+                        // Nếu rỗng → trả về rỗng
+                        if (numberString.isEmpty) {
                           controller.createPrice.value = TextEditingValue(text: '');
-                          // controller.calculateTotal();
+                          return;
                         }
 
-                        // 💡 KHÔNG cần xử lý trường hợp numberInt == null (khi có ký tự lạ)
-                        // vì chúng ta chỉ cập nhật controller khi là số hợp lệ.
-                        // Nếu người dùng nhập ký tự không phải số, text sẽ không thay đổi.
+                        // Parse số
+                        final numberInt = int.parse(numberString);
+
+                        // Format lại theo VN
+                        final formatted = NumberFormat('#,###', 'vi_VN').format(numberInt);
+
+                        controller.createPrice.value = TextEditingValue(
+                          text: formatted,
+                          selection: TextSelection.collapsed(offset: formatted.length),
+                        );
                       },
                     ),
                   ),
