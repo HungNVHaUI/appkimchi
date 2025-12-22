@@ -11,13 +11,14 @@ class TTexts {
   static const String onBoardingSubTitle3 = "From Our Doorstep to Yours Swift, Secure, and Contactless Delivery!";
 
   static const String homeAppbarTitle = "Ngày mới lắm tiền";
-  static const String homeAppbarSubTitle = "Hùng Kho T9";
+  static const String homeAppbarSubTitle = "Cửa Hàng Kim Chi";
 
   // Authentication Form Text
   static const String firstName = "First Name";
   static const String createPrice = "Giá";
   static const String createQty = "Qty";
   static const String createTotal = "Tổng";
+  static const String createUnit = "Đơn vị";
   static const String lastName = "Last Nane";
   static const String email = "E-Mail";
   static const String password = "Password";

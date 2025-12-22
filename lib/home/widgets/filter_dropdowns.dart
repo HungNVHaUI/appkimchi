@@ -152,26 +152,22 @@ class NotesListView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                note.clientName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: TSizes.fontSizeLg,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                "Ngày: ${DateFormat('dd/MM/yyyy').format(note.createdAt)}",
-                                style: const TextStyle(fontSize: TSizes.fontSizeSm),
-                              ),
-                            ]),
+                        Text(
+                          note.clientName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: TSizes.fontSizeLg,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
 
-                        const SizedBox(height: TSizes.md),
-
+                        const SizedBox(height: TSizes.xs),
+                        Text(
+                          "Ngày: ${DateFormat('dd/MM/yyyy').format(note.createdAt)}",
+                          style: const TextStyle(fontSize: TSizes.fontSizeSm),
+                        ),
+                        const SizedBox(height: TSizes.xs),
                         Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -179,26 +175,31 @@ class NotesListView extends StatelessWidget {
                                 "Tổng: ${NumberFormat.currency(locale: 'vi_VN', symbol: '₫').format(note.totalAll)}",
                                 style: const TextStyle(fontSize: TSizes.fontSizeSm),
                               ),
-                              Container(
-                                width: 15,
-                                height: 15,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: note.debt ? TColors.warning : TColors.primary,
-                                ),
-                              ),
+
                             ]),
                       ],
                     ),
                   ),
                   /// 🔹 THÊM CHECKBOX
-                  Container(
-                    padding: const EdgeInsets.only(top: 13,),
-                    alignment: Alignment.center,       // canh giữa widget con
-                    child: SelectableCheckbox(
-                      noteId: note.id,
-                      showCheckBox: showCheckBox,
-                    ),
+                  Column(
+                    children: [
+                      Container(
+                        //padding: const EdgeInsets.only(top: 13,),
+                        alignment: Alignment.center,       // canh giữa widget con
+                        child: SelectableCheckbox(
+                          noteId: note.id,
+                          showCheckBox: showCheckBox,
+                        ),
+                      ),
+                      Container(
+                        width: 15,
+                        height: 15,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: note.debt ? TColors.warning : TColors.primary,
+                        ),
+                      ),
+                    ],
                   ),
 
 

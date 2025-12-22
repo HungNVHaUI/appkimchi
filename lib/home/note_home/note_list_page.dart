@@ -21,14 +21,9 @@ class ListNotesPage extends StatelessWidget {
           // 🔹 LIST DATA
           Expanded(
             child: Obx(() {
-              // Ghi chú: Cần đảm bảo FillController có logic quản lý trạng thái tải (isLoading)
-              // hoặc trạng thái load ban đầu để hiển thị chính xác.
-
-              // Giả định: Đang tải hoặc chưa có dữ liệu nào được load lần đầu
               if (controller.allNotes.isEmpty &&
                   controller.selectedMonth.value == null &&
                   controller.selectedYear.value == null) {
-                // Thay thế bằng cờ isLoading nếu có
                 return const Center(child: CircularProgressIndicator());
               }
 

@@ -12,11 +12,12 @@ import '../debt_checkbox.dart';
 import '../validation.dart';
 
 class CreateNoteForm extends StatelessWidget {
-  const CreateNoteForm({super.key});
-
+  CreateNoteForm({super.key});
+  final FocusNode customerFocus = FocusNode();
+  final FocusNode productFocus = FocusNode();
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(CreateNoteController());
+    final controller = Get.find<CreateNoteController>();
     final vndFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '');
 
     return Form(
@@ -24,149 +25,265 @@ class CreateNoteForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// Khách hàng
-          TextFormField(
-            controller: controller.clientName,
-            validator: (val) => TValidator.validateEmptyText('Khách Hàng', val),
-            decoration: const InputDecoration(
-              labelText: TTexts.createNameNote,
-              prefixIcon: Icon(Iconsax.user_edit),
-            ),
+
+          /// ================= KHÁCH HÀNG (AUTOCOMPLETE) =================
+          RawAutocomplete<String>(
+            textEditingController: controller.clientName,
+            focusNode: customerFocus,
+            optionsBuilder: (value) {
+              if (value.text.isEmpty) return const Iterable<String>.empty();
+              return controller.customerNames.where(
+                    (e) => e.toLowerCase().contains(value.text.toLowerCase()),
+              );
+            },
+            onSelected: (selection) async {
+              // Khi chọn từ gợi ý, điền thông tin lịch sử
+              await controller.fillInfoFromHistory(selection);
+              customerFocus.unfocus();
+            },
+            fieldViewBuilder: (context, textController, focusNode, _) {
+              return TextFormField(
+                controller: textController,
+                focusNode: focusNode,
+                decoration: const InputDecoration(
+                  labelText: TTexts.createNameNote,
+                  prefixIcon: Icon(Iconsax.user_edit),
+                ),
+                // 🔹 KHI THAY ĐỔI TÊN -> RESET TẤT CẢ
+                onChanged: (value) {
+                  controller.resetForm();
+                },
+              );
+            },
+
+            // Phần optionsViewBuilder của bạn cần thêm ConstrainedBox
+            // để sửa triệt để lỗi "infinite size" đã gặp ở trên
+            optionsViewBuilder: (context, onSelected, options) {
+              return Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  elevation: 4.0,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 200), // Giới hạn chiều cao
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width - (TSizes.defaultSpace * 2),
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        children: options.map((opt) {
+                          return ListTile(
+                            title: Text(opt),
+                            onTap: () => onSelected(opt),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
+
           const SizedBox(height: TSizes.spaceBtwInputFields),
 
-          /// Phone Number
+          /// ================= PHONE =================
           TextFormField(
             controller: controller.phoneNumber,
-            //validator: (val) => TValidator.validatePhoneNumber(val),
-            keyboardType: TextInputType.phone, // Nên dùng keyboardType: phone
+            keyboardType: TextInputType.phone,
             decoration: InputDecoration(
               labelText: TTexts.phoneNumber,
               prefixIcon: const Icon(Iconsax.call),
-              // 🔹 THÊM ICON DANH BẠ 🔹
               suffixIcon: IconButton(
                 icon: Icon(Iconsax.archive_book, color: TColors.primary),
-                // Giả định bạn có hàm selectContact() trong controller
                 onPressed: () => controller.selectContact(),
               ),
             ),
           ),
+
           const SizedBox(height: TSizes.spaceBtwSections),
 
-          /// Section heading (hiển thị/ẩn Row thêm sản phẩm)
           const TSectionHeading(
             title: "Danh Sách Mua",
             showActionButton: false,
           ),
+
           const SizedBox(height: TSizes.spaceRowItems),
 
-          /// Row nhập sản phẩm
+          /// ================= NHẬP SẢN PHẨM =================
           Column(
             children: [
-              TextFormField(
-                controller: controller.createProductName,
-                //validator: (val) => TValidator.validatePhoneNumber(val),
-                decoration: const InputDecoration(
-                  labelText: TTexts.createProductName,
-                  prefixIcon: Icon(Iconsax.cards),
-                ),
-              ),
-              const SizedBox(height: TSizes.spaceRowItemsSmail),
+
+              /// -------- ROW 1: TÊN SP + NÚT THÊM --------
               Row(
                 children: [
-                  // GIÁ (30%)
-                  Flexible(
+                  Expanded(
+                    child: RawAutocomplete<String>(
+                      textEditingController: controller.createProductName,
+                      focusNode: productFocus,
+
+                      optionsBuilder: (value) {
+                        if (value.text.isEmpty) return const Iterable<String>.empty();
+                        return controller.productNameSuggestions.where(
+                              (e) => e.toLowerCase().contains(value.text.toLowerCase()),
+                        );
+                      },
+
+                      onSelected: (selection) {
+                        controller.createProductName.text = selection;
+                        controller.autoFillProductFromHistory(selection);
+                        productFocus.unfocus();
+                      },
+
+                      fieldViewBuilder: (context, textController, focusNode, _) {
+                        return TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: TTexts.createProductName,
+                          ),
+                          controller: textController,
+                          focusNode: focusNode,
+                        );
+                      },
+
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft, // Giữ danh sách nằm đúng vị trí
+                          child: Material(
+                            elevation: 4.0, // Tạo hiệu ứng nổi khối
+                            borderRadius: BorderRadius.circular(8), // Bo góc cho đẹp
+                            child: ConstrainedBox(
+                              // GIẢI QUYẾT LỖI INFINITE SIZE: Giới hạn chiều cao tối đa
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              child: SizedBox(
+                                // Chiều rộng khớp với ô nhập liệu (trừ padding mặc định)
+                                width: MediaQuery.of(context).size.width - (32),
+                                child: ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  shrinkWrap: true,
+                                  itemCount: options.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    final String option = options.elementAt(index);
+                                    return ListTile(
+                                      title: Text(option),
+                                      onTap: () => onSelected(option),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  ),
+                  const SizedBox(width: TSizes.spaceRowItems),
+                  ElevatedButton(
+                    onPressed: () {
+                      FocusScope.of(context).unfocus();
+                      controller.addProduct();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(14),
+                    ),
+                    child: const Icon(Icons.check),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: TSizes.spaceRowItemsSmail),
+
+              /// -------- ROW 2: PRICE – QTY – UNIT – TOTAL --------
+              Row(
+                children: [
+                  Expanded(
                     flex: 3,
                     child: TextFormField(
                       controller: controller.createPrice,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                           labelText: TTexts.createPrice),
-                      onChanged: (value) {
-                        // Xoá toàn bộ ký tự không phải số
-                        final numberString = value.replaceAll(RegExp(r'[^0-9]'), '');
-
-                        // Nếu rỗng → trả về rỗng
-                        if (numberString.isEmpty) {
-                          controller.createPrice.value = TextEditingValue(text: '');
-                          return;
-                        }
-
-                        // Parse số
-                        final numberInt = int.parse(numberString);
-
-                        // Format lại theo VN
-                        final formatted = NumberFormat('#,###', 'vi_VN').format(numberInt);
-
-                        controller.createPrice.value = TextEditingValue(
-                          text: formatted,
-                          selection: TextSelection.collapsed(offset: formatted.length),
-                        );
-                      },
+                      onChanged: controller.onPriceChanged,
                     ),
                   ),
-                  const SizedBox(width: TSizes.spaceRowItems),
-                  // SỐ LƯỢNG (20%)
-                  Flexible(
+                  const SizedBox(width: TSizes.xs),
+                  Expanded(
                     flex: 2,
                     child: TextFormField(
                       controller: controller.createQty,
-                      //validator: (valve) => TValidator.validateEmptyText('Qty', valve),
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                           labelText: TTexts.createQty),
+                      onChanged: (_) =>
+                          controller.recalculateCreateTotal(),
                     ),
                   ),
-                  const SizedBox(width: TSizes.spaceRowItems),
-                  // TỔNG (40%) – TỰ TÍNH, KHÔNG CHO NHẬP
-                  Flexible(
+                  const SizedBox(width: TSizes.xs),
+                  Expanded(
+                    flex: 2,
+                    child: TextFormField(
+                      controller: controller.createUnit,
+                      decoration: const InputDecoration(
+                          labelText: TTexts.createUnit),
+                    ),
+                  ),
+                  const SizedBox(width: TSizes.xs),
+                  Expanded(
                     flex: 4,
                     child: TextFormField(
                       controller: controller.createTotal,
-                      readOnly: true, // Quan trọng!
+                      readOnly: true,
                       decoration: const InputDecoration(
                           labelText: TTexts.createTotal),
-                    ),
-                  ),
-                  const SizedBox(width: TSizes.spaceRowItemsSmail),
-                  // Nút thêm sản phẩm
-                  // Nút thêm sản phẩm
-                  Flexible(
-                    flex: 1,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // 1. Ẩn bàn phím ảo
-                        FocusScope.of(context).unfocus();
-
-                        // 2. Gọi hàm thêm sản phẩm
-                        controller.addProduct();
-                      },
-                      child: const Icon(Icons.check),
                     ),
                   ),
                 ],
               ),
             ],
           ),
+          const Divider(),
 
-          Obx(() => controller.productList.isNotEmpty ?
-          Column(
-            children: controller.productList.asMap().entries.map((entry) {
+          /// ================= DANH SÁCH SP ĐÃ THÊM =================
+          Obx(() => controller.productList.isEmpty
+              ? const SizedBox()
+              : Column(
+            children: controller.productList
+                .asMap()
+                .entries
+                .map((entry) {
               final index = entry.key;
               final p = entry.value;
 
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                padding:
+                const EdgeInsets.symmetric(vertical: 8),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextFormField(
-                      initialValue: p.nameProduct,
-                      readOnly: true,
-                      decoration: const InputDecoration(prefixIcon: Icon(Iconsax.cards)),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            initialValue:
+                            p.nameProduct,
+                            readOnly: true,
+                            decoration:
+                            const InputDecoration(
+                              labelText:
+                              TTexts.createProductName,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: TSizes.xs),
+                        ElevatedButton(
+                          onPressed: () => controller
+                              .productList
+                              .removeAt(index),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
+                          child:
+                          const Icon(Icons.clear),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: TSizes.spaceRowItemsSmail),
-
                     Row(
                       children: [
                         // GIÁ
@@ -178,7 +295,7 @@ class CreateNoteForm extends StatelessWidget {
                             decoration: const InputDecoration(labelText: TTexts.createPrice),
                           ),
                         ),
-                        const SizedBox(width: TSizes.spaceRowItems),
+                        const SizedBox(width: TSizes.xs),
 
                         // QTY
                         Flexible(
@@ -189,7 +306,17 @@ class CreateNoteForm extends StatelessWidget {
                             decoration: const InputDecoration(labelText: TTexts.createQty),
                           ),
                         ),
-                        const SizedBox(width: TSizes.spaceRowItems),
+                        const SizedBox(width: TSizes.xs),
+                        // UNIT (20%)
+                        Flexible(
+                          flex: 2,
+                          child: TextFormField(
+                            initialValue: p.unit.toString(),
+                            readOnly: true,
+                            decoration: const InputDecoration(labelText: TTexts.createUnit),
+                          ),
+                        ),
+                        const SizedBox(width: TSizes.xs),
 
                         // TOTAL
                         Flexible(
@@ -200,42 +327,31 @@ class CreateNoteForm extends StatelessWidget {
                             decoration: const InputDecoration(labelText: TTexts.createTotal),
                           ),
                         ),
-                        const SizedBox(width: TSizes.spaceRowItemsSmail),
+                        const SizedBox(width: TSizes.xs),
 
-                        // ❌ Nút xóa
-                        Flexible(
-                          flex: 1,
-                          child: ElevatedButton(
-                            onPressed: () => controller.productList.removeAt(index),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                            ),
-                            child: const Icon(Icons.clear),
-                          ),
-                        ),
+
                       ],
                     ),
+                    const Divider(),
                   ],
                 ),
               );
             }).toList(),
-          )
-              : Container()),
+          )),
 
           const SizedBox(height: TSizes.spaceBtwSections),
           const DebtCheckbox(),
-
           const SizedBox(height: TSizes.spaceBtwSections),
 
-          // Nút lưu Firebase
+          /// ================= SAVE =================
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => controller.create_note(),
-              child: const Text(
-                TTexts.createNote,
-              ),
-
+              onPressed: () {
+                FocusScope.of(context).unfocus();
+                controller.create_note();
+              },
+              child: const Text(TTexts.createNote),
             ),
           ),
         ],

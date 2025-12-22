@@ -23,262 +23,228 @@ class NoteDetailScreen extends StatelessWidget {
     final controller = Get.put(NoteDetailController(note));
 
     return Scaffold(
+      // Tự động đẩy nội dung lên khi bàn phím hiện
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Chi tiết phiếu'),
-        automaticallyImplyLeading: true, // Hiện nút Back
+        automaticallyImplyLeading: true,
         iconTheme: IconThemeData(
-          color: THelperFunctions.isDarkMode(context) ? TColors.light : TColors.dark, // Màu của mũi tên Back
+          color: THelperFunctions.isDarkMode(context) ? TColors.light : TColors.dark,
         ),
       ),
+      body: GestureDetector(
+        // Ẩn bàn phím khi chạm vào vùng trống
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Padding(
+          padding: const EdgeInsets.all(TSizes.defaultSpace),
 
-      body: Padding(
-        padding: const EdgeInsets.all(TSizes.defaultSpace),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// Khách hàng & SĐT
-            Obx(
-                  () => TextFormField(
-                controller: controller.clientNameController,
-                readOnly: !controller.isEditing.value,
-                decoration: const InputDecoration(
-                  labelText: 'Tên khách hàng',
-                  prefixIcon: Icon(Iconsax.user_edit),
-                ),
-              ),
-            ),
-            const SizedBox(height: TSizes.spaceBtwInputFields),
-            Obx(
-                  () => TextFormField(
-                controller: controller.phoneNumberController,
-                readOnly: !controller.isEditing.value,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: TTexts.phoneNumber,
-                  prefixIcon: Icon(Iconsax.call),
-                ),
-              ),
-            ),
-            const SizedBox(height: TSizes.spaceBtwSections),
+          child: Column(
+            children: [
+              // Phần nội dung có thể cuộn
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: TSizes.xs),
+                      /// Khách hàng & SĐT
+                      Obx(
+                            () => TextFormField(
+                          controller: controller.clientNameController,
+                          readOnly: !controller.isEditing.value,
+                          decoration: const InputDecoration(
+                            labelText: 'Tên khách hàng',
+                            prefixIcon: Icon(Iconsax.user_edit),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: TSizes.spaceBtwInputFields),
+                      Obx(
+                            () => TextFormField(
+                          controller: controller.phoneNumberController,
+                          readOnly: !controller.isEditing.value,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: TTexts.phoneNumber,
+                            prefixIcon: Icon(Iconsax.call),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: TSizes.spaceBtwSections),
 
-            /// Danh sách sản phẩm
-            const TSectionHeading(
-              title: "Danh Sách Mua",
-              showActionButton: false,
-            ),
-            const SizedBox(height: TSizes.md),
-            Expanded(
-              child: Obx(
-                    () => ListView.builder(
-                  itemCount: controller.mutableProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = controller.mutableProducts[index];
-                    final totalValue = product['total'] as double;
+                      /// Danh sách sản phẩm
+                      const TSectionHeading(
+                        title: "Danh Sách Mua",
+                        showActionButton: false,
+                      ),
+                      const SizedBox(height: TSizes.md),
 
-                    // Định dạng tiền tệ cho trường chỉ đọc (Total)
-                    final totalString = NumberFormat.currency(
-                        locale: 'vi_VN', symbol: '')
-                        .format(totalValue)
-                        .replaceAll(',00', '');
+                      Obx(
+                            () => ListView.builder(
+                          shrinkWrap: true, // Quan trọng để nằm trong SingleChildScrollView
+                          physics: const NeverScrollableScrollPhysics(), // Tắt cuộn riêng của ListView
+                          itemCount: controller.mutableProducts.length,
+                          itemBuilder: (context, index) {
+                            final product = controller.mutableProducts[index];
+                            final totalValue = product['total'] as double;
+                            final totalString = NumberFormat.currency(locale: 'vi_VN', symbol: '')
+                                .format(totalValue)
+                                .replaceAll(',00', '');
 
-                    return Container(
-                      padding: const EdgeInsets.only(bottom: TSizes.sm),
-                      child: Column(
-                        children: [
-                          // Tên sản phẩm (Không chỉnh sửa)
-
-                          Obx(() {
-                            return TextFormField(
-                              controller: controller.nameControllers[index],
-                              readOnly: !controller.isEditing.value,
-                              keyboardType: TextInputType.text,
-                              onChanged: (value) {
-                                controller.updateProductName(index, value); // chỉnh đúng hàm
-                              },
-                              decoration: const InputDecoration(
-                                labelText: 'Tên Sản Phẩm',
+                            return Container(
+                              padding: const EdgeInsets.only(bottom: TSizes.md),
+                              child: Column(
+                                children: [
+                                  Obx(() => TextFormField(
+                                    controller: controller.nameControllers[index],
+                                    readOnly: !controller.isEditing.value,
+                                    decoration: const InputDecoration(labelText: 'Tên sản phẩm'),
+                                    onChanged: (v) => controller.updateProductName(index, v),
+                                  )),
+                                  const SizedBox(height: TSizes.spaceRowItemsSmail),
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        flex: 3,
+                                        child: Obx(() {
+                                          final priceController = controller.priceControllers[index];
+                                          return TextFormField(
+                                            controller: priceController,
+                                            keyboardType: TextInputType.number,
+                                            readOnly: !controller.isEditing.value,
+                                            decoration: const InputDecoration(labelText: TTexts.createPrice),
+                                            onChanged: (value) {
+                                              priceController.formatInput();
+                                              final rawPrice = priceController.rawValue;
+                                              controller.mutableProducts[index]['price'] = rawPrice;
+                                              controller.recalculateItemTotal(index);
+                                            },
+                                          );
+                                        }),
+                                      ),
+                                      const SizedBox(width: TSizes.xs),
+                                      Flexible(
+                                        flex: 2,
+                                        child: Obx(
+                                              () => TextFormField(
+                                            initialValue: (product['qty'] as int).toString(),
+                                            readOnly: !controller.isEditing.value,
+                                            keyboardType: TextInputType.number,
+                                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                            onChanged: (value) => controller.updateProductQty(index, value),
+                                            decoration: const InputDecoration(labelText: TTexts.createQty),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: TSizes.xs),
+                                      Flexible(
+                                        flex: 2,
+                                        child: Obx(
+                                              () => TextFormField(
+                                            initialValue: product['unit'],
+                                            readOnly: !controller.isEditing.value,
+                                            onChanged: (value) => controller.updateProductUnit(index, value),
+                                            decoration: const InputDecoration(labelText: TTexts.createUnit),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: TSizes.xs),
+                                      Flexible(
+                                        flex: 5,
+                                        child: TextFormField(
+                                          key: ValueKey('total_${index}_$totalValue'),
+                                          initialValue: totalString,
+                                          readOnly: true,
+                                          decoration: const InputDecoration(labelText: TTexts.createTotal),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             );
-                          }),
-
-                          const SizedBox(height: TSizes.spaceRowItemsSmail),
-
-                          // Giá, Số lượng, Tổng
-                          Row(
-                            children: [
-                              /// Giá
-                              /// Trong ListView.builder
-                              Flexible(
-                                flex: 3,
-                                child: Obx(() {
-                                  final priceController = controller.priceControllers[index];
-
-                                  return TextFormField(
-                                    controller: priceController,
-                                    keyboardType: TextInputType.number,
-                                    readOnly: !controller.isEditing.value,
-                                    decoration: const InputDecoration(labelText: TTexts.createPrice),
-                                    onChanged: (value) {
-                                      priceController.formatInput(); // Format realtime
-
-                                      // Cập nhật mutableProducts
-                                      final rawPrice = priceController.rawValue;
-                                      controller.mutableProducts[index]['price'] = rawPrice;
-                                      controller.recalculateItemTotal(index);
-                                    },
-                                  );
-                                }),
-                              ),
-
-                              const SizedBox(width: TSizes.spaceRowItems),
-
-                              /// Số lượng
-                              Flexible(
-                                flex: 2,
-                                child: Obx(
-                                      () => TextFormField(
-                                    initialValue:
-                                    (product['qty'] as int).toString(),
-                                    readOnly: !controller.isEditing.value,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly
-                                    ],
-                                    onChanged: (value) {
-                                      // Gọi hàm Controller để xử lý logic
-                                      controller.updateProductQty(index, value);
-                                    },
-                                    decoration: const InputDecoration(
-                                        labelText: TTexts.createQty),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: TSizes.spaceRowItems),
-
-                              /// Tổng (Tự động tính)
-                              Flexible(
-                                flex: 5,
-                                child: TextFormField(
-                                  key: ValueKey('total_${index}_${totalValue}'),
-                                  initialValue: totalString,
-                                  readOnly: true,
-                                  decoration: const InputDecoration(
-                                      labelText: TTexts.createTotal),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                          },
+                        ),
                       ),
-                    );
-                  },
+
+                      const Divider(),
+
+                      /// TỔNG TIỀN HÓA ĐƠN
+                      Obx(
+                            () => Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('TỔNG HÓA ĐƠN',
+                                style: TextStyle(fontSize: TSizes.fontSizeMd, fontWeight: FontWeight.bold)),
+                            Text(
+                              NumberFormat.currency(locale: 'vi_VN', symbol: '')
+                                  .format(controller.grandTotal.value)
+                                  .replaceAll(',00', ''),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: TSizes.fontSizeLg,
+                                  color: TColors.primary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: TSizes.spaceBtwSections),
+
+                      /// HIỂN THỊ TRẠNG THÁI NỢ/THANH TOÁN
+                      InkWell(
+                        onTap: () => _showDebtUpdateDialog(context, controller),
+                        child: Obx(
+                              () => Text(
+                            controller.debtStatus.value
+                                ? 'Khách đang nợ hóa đơn này'
+                                : 'Khách đã thanh toán hóa đơn này',
+                            style: TextStyle(
+                              fontSize: TSizes.fontSizeMd,
+                              color: controller.debtStatus.value ? Colors.red : Colors.green,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: TSizes.spaceBtwSections),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            const Divider(),
-
-            /// TỔNG TIỀN HÓA ĐƠN
-            Obx(
-                  () => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              /// PHẦN NÚT BẤM (Cố định ở dưới cùng hoặc trên bàn phím)
+              const SizedBox(height: TSizes.md),
+              Row(
                 children: [
-                  const Text('TỔNG HÓA ĐƠN',
-                    style: const TextStyle(fontSize: TSizes.fontSizeMd, fontWeight: FontWeight.bold,),),
-                  Text(
-                    NumberFormat.currency(locale: 'vi_VN', symbol: '')
-                        .format(controller.grandTotal.value)
-                        .replaceAll(',00', ''),
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: TSizes.fontSizeLg,
-                        color: TColors.primary),
+                  Expanded(
+                    child: Obx(
+                          () => ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: controller.isEditing.value ? TColors.primary : TColors.warning),
+                        onPressed: () async {
+                          if (controller.isEditing.value) {
+                            await controller.updateNoteDetails();
+                            controller.isEditing.value = false;
+                            FocusScope.of(context).unfocus(); // Ẩn bàn phím sau khi lưu
+                          } else {
+                            controller.isEditing.value = true;
+                          }
+                        },
+                        child: Text(controller.isEditing.value ? 'LƯU' : 'CHỈNH SỬA'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: TSizes.sm),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      onPressed: () => _showDeleteConfirmationDialog(context, controller),
+                      child: const Text('XÓA'),
+                    ),
                   ),
                 ],
               ),
-            ),
-
-            const SizedBox(height: TSizes.spaceBtwSections),
-
-            /// HIỂN THỊ TRẠNG THÁI NỢ/THANH TOÁN
-            InkWell(
-              onTap: () => _showDebtUpdateDialog(context, controller),
-              child: Obx(
-                    () => Text(
-                  controller.debtStatus.value
-                      ? 'Khách đang nợ hóa đơn này'
-                      : 'Khách đã thanh toán hóa đơn này',
-                  style: TextStyle(
-                    fontSize: TSizes.fontSizeMd,
-                    color: controller.debtStatus.value ? Colors.red : Colors.green,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: TSizes.spaceBtwSections),
-
-            /// 3 NÚT Ở DƯỚI CÙNG
-            Row(
-              children: [
-                // 1. NÚT EDIT/SAVE MỚI
-                Expanded(
-                  child: Obx(
-                        () => ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: controller.isEditing.value
-                              ? TColors.primary
-                              : TColors.warning),
-                      onPressed: () async {
-                        if (controller.isEditing.value) {
-                          // Đang ở chế độ chỉnh sửa -> Nhấn để LƯU
-                          await controller.updateNoteDetails();
-                          controller.isEditing.value = false;
-                        } else {
-                          // Đang ở chế độ chỉ đọc -> Nhấn để CHỈNH SỬA
-                          controller.isEditing.value = true;
-                        }
-                      },
-                      child: Text(controller.isEditing.value
-                          ? 'LƯU'
-                          : 'CHỈNH SỬA'),
-                    ),
-                  ),
-                ),
-                /*Expanded(
-                  child: Obx(
-                        () => ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: TColors.primary),
-                      onPressed: () async {
-                        if (controller.isEditing.value) {
-                          // Đang ở chế độ chỉnh sửa -> Nhấn để LƯU
-                          await controller.updateNoteDetails();
-                          controller.isEditing.value = false;
-                        } else {
-                          // Đang ở chế độ chỉ đọc -> Nhấn để CHỈNH SỬA
-                          controller.isEditing.value = true;
-                        }
-                      },
-                      child: Text(controller.isEditing.value
-                          ? 'LƯU'
-                          : 'CHỈNH SỬA'),
-                    ),
-                  ),
-                ),*/
-                const SizedBox(width: TSizes.sm),
-
-                // 2. NÚT XÓA
-                Expanded(
-                  child: ElevatedButton(
-                    style:
-                    ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    onPressed: () => _showDeleteConfirmationDialog(context, controller),
-                    child: const Text('XÓA'),
-                  ),
-                ),
-              ],
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );

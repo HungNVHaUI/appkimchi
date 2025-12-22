@@ -26,7 +26,7 @@ class NoteDetailController extends GetxController {
   // PriceController cho mỗi sản phẩm
   late RxList<PriceController> priceControllers;
   late RxList<TextEditingController> nameControllers;
-
+  late RxList<TextEditingController> unitControllers;
   @override
   @override
   void onInit() {
@@ -67,6 +67,7 @@ class NoteDetailController extends GetxController {
         'nameProduct': p.nameProduct,
         'price': p.price.toDouble(),
         'qty': p.qty,
+        'unit': p.unit,
         'total': p.total.toDouble(),
       };
     }).toList();
@@ -82,6 +83,7 @@ class NoteDetailController extends GetxController {
         price: price,
         qty: item['qty'] as int,
         total: total,
+        unit: item['unit'] as String,
       );
     }).toList();
   }
@@ -115,7 +117,11 @@ class NoteDetailController extends GetxController {
 
   void updateProductName(int index, String value) {
     mutableProducts[index]['nameProduct'] = value;
+    nameControllers[index].text = value; // đảm bảo controller sync
     mutableProducts.refresh();
+  }
+  void updateProductUnit(int index, String value) {
+    mutableProducts[index]['unit'] = value;
   }
 
   void updateProductPrice(int index, String value) {
