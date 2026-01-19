@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: TSizes.spaceBtwSections),
 
                 Padding(
-                  padding: EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                       left: TSizes.spaceBtwItems, right: TSizes.spaceBtwItems),
                   child: Row(
                     children: [

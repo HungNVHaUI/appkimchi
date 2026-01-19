@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ghi_no/theme/constants/colors.dart';
 import 'package:ghi_no/theme/constants/sizes.dart';
 import 'package:intl/intl.dart';
-
+import 'package:get/get.dart';
+import '../../home/note_home/note_detail_screen.dart';
 import '../purchar_model.dart';
 
 class PurchaseHistoryList extends StatelessWidget {
@@ -22,6 +23,10 @@ class PurchaseHistoryList extends StatelessWidget {
       itemBuilder: (context, i) {
         final p = purchases[i];
         return ListTile(
+            onTap: () {
+              Get.to(() => NoteDetailScreen(note: p.note));
+            },
+
           leading: const Icon(Icons.shopping_bag_outlined),
           title: Text(
             fmt.format(p.amount),

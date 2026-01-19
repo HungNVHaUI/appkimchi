@@ -5,6 +5,7 @@ import 'package:ghi_no/purchar/purchar_controller.dart';
 import 'package:ghi_no/theme/constants/colors.dart';
 import 'package:ghi_no/theme/constants/sizes.dart';
 import 'package:ghi_no/theme/helpers/helper_functions.dart';
+import '../theme/constants/container/search_container.dart';
 import 'customer_detail_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -64,133 +65,154 @@ class CustomerListScreen extends StatelessWidget {
         elevation: 0,
       ),
 
+
       // Dùng Obx vì controller có isLoading + customers (RxList)
       body: Obx(() {
-        // Loading state từ controller
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-        // Lấy danh sách từ controller (đã typed là List<CustomerInfo>)
-        final customers = controller.customers;
+      final customers = controller.filteredCustomers;
 
-        if (customers.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Iconsax.user_octagon, size: 60),
-                const SizedBox(height: TSizes.spaceBtwItems),
-                Text(
-                  'Hiện không có khách hàng nào.',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-          );
-        }
+      return Column(
+        children: [
 
-        return ListView.separated(
-          padding: const EdgeInsets.all(TSizes.defaultSpace),
-          itemCount: customers.length,
-          separatorBuilder: (_, __) => const SizedBox(height: TSizes.spaceBtwItems),
-          itemBuilder: (context, index) {
-            final c = customers[index];
-
-            final bool hasDebt = c.totalDebt > 0;
-            final Color debtColor = hasDebt ? TColors.warning : TColors.primary;
-            final Color cardColor = dark ? TColors.darkContainer : TColors.white;
-
-            // tổng tạm ứng (nếu bạn không có field totalPayments trong model)
-            final num totalPayments = c.payments.fold(0, (s, p) => s + (p.amount ?? 0));
-
-            return InkWell(
-              onTap: () => Get.to(() => CustomerDetailPage(customer: c)),
-              borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
-              child: Container(
-                padding: const EdgeInsets.all(TSizes.md),
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
-                  border: Border.all(
-                    color: dark ? TColors.light : TColors.dark,
-                    width: 1.2,
+          // 🔍 SEARCH — THÊM Ở ĐÂY
+          TSearchContainer(
+            text: "Tìm khách hàng",
+            showBorder: true,
+            onChanged: (value) {
+              controller.searchText.value = value.trim();
+            },
+          ),
+          const SizedBox(height: TSizes.spaceBtwItems),
+          // 📋 LIST KHÁCH HÀNG
+          Expanded(
+            child: customers.isEmpty
+                ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Iconsax.user_octagon, size: 60),
+                  const SizedBox(height: TSizes.spaceBtwItems),
+                  Text(
+                    'Không tìm thấy khách hàng',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                ),
-                child: Row(
-                  children: [
+                ],
+              ),
+            )
+                : ListView.separated(
+              padding: const EdgeInsets.all(TSizes.defaultSpace),
+              itemCount: customers.length,
+              separatorBuilder: (_, __) =>
+              const SizedBox(height: TSizes.spaceBtwItems),
+              itemBuilder: (context, index) {
+                final c = customers[index];
 
-                    // CỘT TRÁI — Tên + SĐT
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                final bool hasDebt = c.totalDebt > 0;
+                final Color debtColor =
+                hasDebt ? TColors.warning : TColors.primary;
+                final Color cardColor =
+                dark ? TColors.darkContainer : TColors.white;
 
-                          // Tên khách
-                          Text(
-                            c.name,
-                            style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: debtColor,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: TSizes.xs),
+                final num totalPayments =
+                c.payments.fold(0, (s, p) => s + (p.amount ?? 0));
 
-                          // Danh sách SĐT
-                          if (c.phoneNumbers.isNotEmpty)
-                            Wrap(
-                              spacing: TSizes.sm,
-                              runSpacing: TSizes.xs,
-                              children: c.phoneNumbers.map((p) {
-                                return GestureDetector(
-                                  onTap: () => _callPhone(p),
-                                  child: Chip(
-                                    label: Text(
-                                      p,
-                                      style: Theme.of(context).textTheme.labelSmall,
-                                    ),
-                                    avatar: const Icon(Iconsax.call, size: 16),
-                                    backgroundColor: dark ? TColors.darkGrey : TColors.softGrey,
-                                    labelPadding: const EdgeInsets.symmetric(horizontal: TSizes.sm),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                        ],
+                return InkWell(
+                  onTap: () =>
+                      Get.to(() => CustomerDetailPage(customer: c)),
+                  borderRadius:
+                  BorderRadius.circular(TSizes.borderRadiusLg),
+                  child: Container(
+                    padding: const EdgeInsets.all(TSizes.md),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius:
+                      BorderRadius.circular(TSizes.borderRadiusLg),
+                      border: Border.all(
+                        color: dark ? TColors.light : TColors.dark,
+                        width: 1.2,
                       ),
                     ),
-
-                    // CỘT PHẢI — NỢ + Tạm ứng
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    child: Row(
                       children: [
-                        // Tổng nợ
-                        Text(
-                          controller.formatNumber(c.totalDebt),
-                          style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: debtColor,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                c.name,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge!
+                                    .copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: debtColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: TSizes.xs),
+                              if (c.phoneNumbers.isNotEmpty)
+                                Wrap(
+                                  spacing: TSizes.sm,
+                                  runSpacing: TSizes.xs,
+                                  children: c.phoneNumbers.map((p) {
+                                    return GestureDetector(
+                                      onTap: () => _callPhone(p),
+                                      child: Chip(
+                                        label: Text(
+                                          p,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall,
+                                        ),
+                                        avatar: const Icon(Iconsax.call,
+                                            size: 16),
+                                        backgroundColor: dark
+                                            ? TColors.darkGrey
+                                            : TColors.softGrey,
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: TSizes.sm),
-
-                        // Tổng tạm ứng
-                        _buildTransactionInfo(
-                          icon: Iconsax.wallet_3,
-                          label: 'Tạm ứng: ${controller.formatNumber(totalPayments)}',
-                          context: context,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              controller.formatNumber(c.totalDebt),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall!
+                                  .copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: debtColor,
+                              ),
+                            ),
+                            const SizedBox(height: TSizes.sm),
+                            _buildTransactionInfo(
+                              icon: Iconsax.wallet_3,
+                              label:
+                              'Tạm ứng: ${controller.formatNumber(totalPayments)}',
+                              context: context,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      }),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    }),
+
     );
   }
 

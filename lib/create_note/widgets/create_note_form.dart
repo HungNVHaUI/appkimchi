@@ -8,8 +8,8 @@ import '../../theme/constants/sizes.dart';
 import '../../theme/constants/text_strings.dart';
 import '../../theme/constants/texts/section_heading.dart';
 import '../controller/create_note_controller.dart';
-import '../debt_checkbox.dart';
-import '../validation.dart';
+import 'debt_checkbox.dart';
+import 'validation.dart';
 
 class CreateNoteForm extends StatelessWidget {
   CreateNoteForm({super.key});

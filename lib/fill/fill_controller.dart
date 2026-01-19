@@ -65,7 +65,7 @@ class FillController extends GetxController {
     /// ------------------------------
     ever(selectedMonth, (_) => calculateTotal());
     ever(selectedYear, (_) => calculateTotal());
-    ever(searchClient, (_) => calculateTotal());
+    debounce(searchClient, (_) => calculateTotal(), time: const Duration(milliseconds: 300));
     ever(checkedMap, (_) => calculateTotal());
   }
 
@@ -74,12 +74,8 @@ class FillController extends GetxController {
   /// ------------------------------
   void _updateAvailableFilters(List<NoteModel> notes) {
     if (notes.isNotEmpty) {
-      availableMonths.value =
-      notes.map((n) => n.createdAt.month).toSet().toList()..sort();
-
-      availableYears.value =
-      notes.map((n) => n.createdAt.year).toSet().toList()
-        ..sort((a, b) => b.compareTo(a));
+      availableMonths.value = notes.map((n) => n.createdAt.month).toSet().toList()..sort();
+      availableYears.value = notes.map((n) => n.createdAt.year).toSet().toList()..sort((a, b) => b.compareTo(a));
     } else {
       availableMonths.clear();
       availableYears.clear();
@@ -150,9 +146,7 @@ class FillController extends GetxController {
       final yearOK =
           selectedYear.value == null || note.createdAt.year == selectedYear.value;
       final searchOK = searchClient.value.isEmpty ||
-          note.clientName
-              .toLowerCase()
-              .contains(searchClient.value.toLowerCase());
+          note.clientName.toLowerCase().contains(searchClient.value.toLowerCase());
 
       return monthOK && yearOK && searchOK;
     }).toList();
@@ -168,179 +162,6 @@ class FillController extends GetxController {
   String get totalAllFilteredFormatted {
     final total = totalAllFiltered;
     return NumberFormat.decimalPattern('vi_VN').format(total);
-  }
-  /*Future<String?> exportToExcel({bool onlySelected = false}) async {
-    try {
-      // 1. Chọn danh sách note cần xuất (Giữ nguyên)
-      List<NoteModel> notesToExport;
-      if (onlySelected) {
-        notesToExport =
-            filteredNotes.where((note) => checkedMap[note.id] == true).toList();
-      } else {
-        notesToExport = filteredNotes;
-      }
-
-      if (notesToExport.isEmpty) return null;
-
-      // 2. Tạo Excel (Giữ nguyên)
-      var excel = Excel.createExcel();
-      Sheet sheet = excel['Sheet1'];
-
-      final dateFormat = DateFormat('dd/MM/yyyy');
-      final numberFormatter = NumberFormat.decimalPattern('vi_VN');
-
-      // 3. Thêm header
-      sheet.appendRow([
-        TextCellValue('Ngày tạo'),
-        TextCellValue('Tên khách hàng'),
-        TextCellValue('Số điện thoại'),
-        TextCellValue('Tổng tiền Giao dịch'),
-        TextCellValue('Trạng thái nợ'),
-
-        TextCellValue('Tên Sản phẩm'),
-        TextCellValue('Số lượng'),
-        TextCellValue('Giá đơn vị'),
-        TextCellValue('Thành tiền Sản phẩm'),
-      ]);
-
-      // ============================
-      // 🔥 API Google Apps Script
-      const String API_URL = "https://script.google.com/macros/s/AKfycby7rR29ukvzqfE1uTM6CxU2lk_sCg2DWqU95EpazscZ8sEB0_la8Bzh60cbbPo4SNbm/exec";
-      // ============================
-
-      // 4. Lặp từng note + sản phẩm
-      for (var note in notesToExport) {
-        final debtStatus = note.debt ? 'CÓ NỢ' : 'Không nợ';
-        final formattedTotalAll = numberFormatter.format(note.totalAll);
-
-        if (note.products.isEmpty) {
-          // Ghi vào Excel
-          sheet.appendRow([
-            TextCellValue(dateFormat.format(note.createdAt)),
-            TextCellValue(note.clientName),
-            TextCellValue(note.phoneNumber),
-            TextCellValue(formattedTotalAll),
-            TextCellValue(debtStatus),
-
-            TextCellValue(''),
-            TextCellValue(''),
-            TextCellValue(''),
-            TextCellValue(''),
-          ]);
-
-          // Gửi API Google Sheet
-          await http.post(
-            Uri.parse(API_URL),
-            headers: {"Content-Type": "application/json"},
-            body: jsonEncode({
-              "date": dateFormat.format(note.createdAt),
-              "client": note.clientName,
-              "phone": note.phoneNumber,
-              "total": formattedTotalAll,
-              "debt": debtStatus,
-
-              "product": "",
-              "qty": "",
-              "price": "",
-              "totalProduct": "",
-            }),
-          );
-
-          continue;
-        }
-
-        // Nếu có sản phẩm → lặp từng sản phẩm
-        for (var product in note.products) {
-          final formattedPrice = numberFormatter.format(product.price);
-          final formattedTotal = numberFormatter.format(product.total);
-
-          // Ghi Excel
-          sheet.appendRow([
-            TextCellValue(dateFormat.format(note.createdAt)),
-            TextCellValue(note.clientName),
-            TextCellValue(note.phoneNumber),
-            TextCellValue(formattedTotalAll),
-            TextCellValue(debtStatus),
-
-            TextCellValue(product.nameProduct),
-            TextCellValue(product.qty.toString()),
-            TextCellValue(formattedPrice),
-            TextCellValue(formattedTotal),
-          ]);
-
-          // Gửi API Google Sheet
-          await http.post(
-            Uri.parse(API_URL),
-            headers: {"Content-Type": "application/json"},
-            body: jsonEncode({
-              "date": dateFormat.format(note.createdAt),
-              "client": note.clientName,
-              "phone": note.phoneNumber,
-              "total": formattedTotalAll,
-              "debt": debtStatus,
-
-              "product": product.nameProduct,
-              "qty": product.qty,
-              "price": formattedPrice,
-              "totalProduct": formattedTotal,
-            }),
-          );
-        }
-      }
-
-      // 5. Lưu file Excel (Giữ nguyên)
-      Directory directory;
-      if (Platform.isAndroid || Platform.isIOS) {
-        directory = (await getExternalStorageDirectory())!;
-      } else {
-        directory = await getApplicationDocumentsDirectory();
-      }
-
-      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final path = '${directory.path}/Notes_$timestamp.xlsx';
-
-      final excelBytes = excel.encode();
-      if (excelBytes == null) return null;
-
-      File(path)
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(excelBytes);
-
-      return path;
-    } catch (e) {
-      print('Export Excel Error: $e');
-      return null;
-    }
-  }*/
-  Future<void> testSendToGoogleSheet() async {
-    const String API_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
-
-    final Map<String, dynamic> testData = {
-      "date": "27/11/2025",
-      "client": "Khách Test",
-      "phone": "0123456789",
-      "total": "1,000,000",
-      "debt": "Không nợ",
-      "products": [
-        {"name": "SP Test", "qty": 1, "price": 1000000, "totalProduct": 1000000}
-      ]
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse(API_URL),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(testData),
-      );
-
-      if (response.statusCode == 200) {
-        print("API response: ${response.body}");
-      } else {
-        print("Failed: ${response.statusCode}, ${response.body}");
-      }
-    } catch (e) {
-      print("Error sending to Google Sheet: $e");
-    }
   }
 
   /// ------------------------------x`xxxxxxxxx`

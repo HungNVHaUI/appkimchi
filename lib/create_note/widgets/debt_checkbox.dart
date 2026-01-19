@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../theme/constants/colors.dart';
-import '../theme/constants/sizes.dart';
-import '../theme/constants/text_strings.dart';
-import '../theme/helpers/helper_functions.dart';
-import 'controller/create_note_controller.dart';
+import '../../theme/constants/colors.dart';
+import '../../theme/constants/sizes.dart';
+import '../../theme/constants/text_strings.dart';
+import '../../theme/helpers/helper_functions.dart';
+import '../controller/create_note_controller.dart';
 
 
 class DebtCheckbox extends StatelessWidget {

@@ -53,6 +53,7 @@ dev_dependencies:
   flutter_contacts: ^1.1.8
   excel: ^4.0.6
   url_launcher: ^6.2.2
+  screenshot: ^2.3.0
 
 flutter:
   uses-material-design: true
