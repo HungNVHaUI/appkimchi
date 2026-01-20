@@ -27,7 +27,7 @@ class NoteDetailController extends GetxController {
   late RxList<PriceController> priceControllers;
   late RxList<TextEditingController> nameControllers;
   late RxList<TextEditingController> unitControllers;
-  @override
+
   @override
   void onInit() {
     super.onInit();

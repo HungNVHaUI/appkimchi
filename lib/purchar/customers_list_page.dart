@@ -86,6 +86,47 @@ class CustomerListScreen extends StatelessWidget {
             },
           ),
           const SizedBox(height: TSizes.spaceBtwItems),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TSizes.defaultSpace),
+            child: Container(
+              padding: const EdgeInsets.all(TSizes.md),
+              decoration: BoxDecoration(
+                color: dark
+                    ? TColors.darkContainer
+                    : TColors.primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
+                border: Border.all(
+                  color: dark ? TColors.darkGrey : TColors.primary.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Iconsax.wallet, size: 20),
+                      const SizedBox(width: TSizes.sm),
+                      Text(
+                        'Tổng công nợ',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                  Obx(() => Text(
+                    controller.formatNumber(controller.totalDebt),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: TColors.warning,
+                    ),
+                  )),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: TSizes.spaceBtwItems),
+
           // 📋 LIST KHÁCH HÀNG
           Expanded(
             child: customers.isEmpty

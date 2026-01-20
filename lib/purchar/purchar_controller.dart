@@ -306,6 +306,28 @@ class CustomersController extends GetxController {
     if (v is Timestamp) return v.toDate();
     return null;
   }
+
+  /// 🔹 Tổng công nợ (theo danh sách đang hiển thị – đã filter)
+  num get totalDebt {
+    return filteredCustomers.fold<num>(
+      0,
+          (sum, c) => sum + c.totalDebt,
+    );
+  }
+
+  /// 🔹 Tổng công nợ CHỈ KHÁCH ĐANG NỢ (>0)
+  num get totalDebtOnly {
+    return filteredCustomers
+        .where((c) => c.totalDebt > 0)
+        .fold<num>(0, (sum, c) => sum + c.totalDebt);
+  }
+
+  /// 🔹 Tổng số khách đang nợ
+  int get totalDebtCustomers {
+    return filteredCustomers.where((c) => c.totalDebt > 0).length;
+  }
+
+
 }
 
 

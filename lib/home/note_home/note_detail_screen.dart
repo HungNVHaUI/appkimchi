@@ -1,20 +1,33 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:ghi_no/theme/constants/colors.dart';
 import 'package:intl/intl.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../create_note/model/note_model.dart';
+import '../../purchar/purchar_controller.dart';
 import '../../theme/constants/sizes.dart';
 import '../../theme/constants/text_strings.dart';
 import '../../theme/constants/texts/section_heading.dart';
 import '../../theme/helpers/helper_functions.dart';
+import 'export/note_export_view.dart';
 import 'note_detail_controller.dart';
 
 class NoteDetailScreen extends StatelessWidget {
   final NoteModel note;
 
-  const NoteDetailScreen({Key? key, required this.note}) : super(key: key);
+  NoteDetailScreen({Key? key, required this.note}) : super(key: key);
+
+
+  final GlobalKey _exportKey = GlobalKey();
+  final customersController = Get.find<CustomersController>();
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +44,12 @@ class NoteDetailScreen extends StatelessWidget {
         iconTheme: IconThemeData(
           color: THelperFunctions.isDarkMode(context) ? TColors.light : TColors.dark,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.camera),
+            onPressed: () => shareInvoice(context, controller),
+          )
+        ],
       ),
       body: GestureDetector(
         // Ẩn bàn phím khi chạm vào vùng trống
@@ -169,25 +188,68 @@ class NoteDetailScreen extends StatelessWidget {
 
                       const Divider(),
 
-                      /// TỔNG TIỀN HÓA ĐƠN
-                      Obx(
-                            () => Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      /// TỔNG TIỀN & TỔNG NỢ
+                      Obx(() {
+                        final customer = customersController.getCustomerByName(
+                          controller.clientNameController.text.trim(),
+                        );
+
+                        final totalDebt = customer.totalDebt;
+
+                        return Column(
                           children: [
-                            const Text('TỔNG HÓA ĐƠN',
-                                style: TextStyle(fontSize: TSizes.fontSizeMd, fontWeight: FontWeight.bold)),
-                            Text(
-                              NumberFormat.currency(locale: 'vi_VN', symbol: '')
-                                  .format(controller.grandTotal.value)
-                                  .replaceAll(',00', ''),
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: TSizes.fontSizeLg,
-                                  color: TColors.primary),
+                            // 🔹 TỔNG HÓA ĐƠN
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'TỔNG HÓA ĐƠN',
+                                  style: TextStyle(
+                                    fontSize: TSizes.fontSizeMd,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  NumberFormat.currency(locale: 'vi_VN', symbol: '')
+                                      .format(controller.grandTotal.value)
+                                      .replaceAll(',00', ''),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: TSizes.fontSizeLg,
+                                    color: TColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: TSizes.sm),
+
+                            // 🔹 TỔNG NỢ KHÁCH
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'TỔNG KHÁCH NỢ',
+                                  style: TextStyle(
+                                    fontSize: TSizes.fontSizeMd,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  NumberFormat.currency(locale: 'vi_VN', symbol: '')
+                                      .format(totalDebt)
+                                      .replaceAll(',00', ''),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: TSizes.fontSizeLg,
+                                    color: TColors.error,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
-                        ),
-                      ),
+                        );
+                      }),
                       const SizedBox(height: TSizes.spaceBtwSections),
 
                       /// HIỂN THỊ TRẠNG THÁI NỢ/THANH TOÁN
@@ -280,6 +342,61 @@ class NoteDetailScreen extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> shareInvoice(
+      BuildContext context,
+      NoteDetailController controller,
+      ) async {
+    // ✅ SYNC DATA
+    controller.clientNameController.text =
+        controller.clientNameController.text.trim();
+    controller.phoneNumberController.text =
+        controller.phoneNumberController.text.trim();
+
+    final overlay = Navigator.of(context).overlay;
+    if (overlay == null) return;
+
+    final entry = OverlayEntry(
+      builder: (_) => Positioned(
+        left: 0,
+        top: 0,
+        child: Material(
+          color: Colors.transparent,
+          child: RepaintBoundary(
+            key: _exportKey,
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: NoteExportView(controller: controller),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(entry);
+
+    // 🔑 ĐỢI FRAME RENDER XONG THẬT
+    await WidgetsBinding.instance.endOfFrame;
+    await Future.delayed(const Duration(milliseconds: 16));
+
+    final boundary =
+    _exportKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+
+    final image = await boundary.toImage(pixelRatio: 3);
+    final byteData = await image.toByteData(format: ImageByteFormat.png);
+    final bytes = byteData!.buffer.asUint8List();
+
+    entry.remove();
+
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/invoice.png');
+    await file.writeAsBytes(bytes);
+
+    await Share.shareXFiles([XFile(file.path)]);
+  }
+
+
+
 
   // Helper function để hiển thị Dialog xác nhận xóa
   void _showDeleteConfirmationDialog(
