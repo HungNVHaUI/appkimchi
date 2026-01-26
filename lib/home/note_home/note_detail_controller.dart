@@ -75,19 +75,22 @@ class NoteDetailController extends GetxController {
 
   List<ProductModel> _convertMutableListToProducts(List<Map<String, dynamic>> list) {
     return list.map((item) {
-      final price = item['price'] is int ? (item['price'] as int).toDouble() : item['price'] as double;
-      final total = item['total'] is int ? (item['total'] as int).toDouble() : item['total'] as double;
+      // Cách viết ngắn gọn và an toàn cho tất cả các trường số
+      final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+      final total = (item['total'] as num?)?.toDouble() ?? 0.0;
+
+      // SỬA TẠI ĐÂY: Chuyển qty sang double
+      final qty = (item['qty'] as num?)?.toDouble() ?? 0.0;
 
       return ProductModel(
-        nameProduct: item['nameProduct'] as String,
+        nameProduct: item['nameProduct'] as String? ?? '',
         price: price,
-        qty: item['qty'] as int,
+        qty: qty, // Đảm bảo ProductModel đã đổi qty thành double
         total: total,
-        unit: item['unit'] as String,
+        unit: item['unit'] as String? ?? '',
       );
     }).toList();
   }
-
   int safeParseInt(String text) => int.tryParse(text) ?? 0;
 
   double safeParsePrice(String text) {
@@ -106,11 +109,15 @@ class NoteDetailController extends GetxController {
 
   void recalculateItemTotal(int index) {
     final product = mutableProducts[index];
-    final price = product['price'] as double;
-    final qty = product['qty'] as int;
+
+    // Sử dụng 'as num' và '.toDouble()' để tránh lỗi ép kiểu từ Firestore
+    final price = (product['price'] as num?)?.toDouble() ?? 0.0;
+    final qty = (product['qty'] as num?)?.toDouble() ?? 0.0; // Sửa từ int sang double
+
     final newTotal = price * qty;
 
     mutableProducts[index]['total'] = newTotal;
+
     recalculateGrandTotal();
     mutableProducts.refresh();
   }
@@ -132,8 +139,12 @@ class NoteDetailController extends GetxController {
   }
 
   void updateProductQty(int index, String value) {
-    final qty = safeParseInt(value);
-    mutableProducts[index]['qty'] = qty;
+    // Chuyển sang double.tryParse để nhận số 2.5
+    double newQty = double.tryParse(value) ?? 0;
+
+    mutableProducts[index]['qty'] = newQty;
+
+    // Tính lại tổng tiền cho sản phẩm này
     recalculateItemTotal(index);
   }
 

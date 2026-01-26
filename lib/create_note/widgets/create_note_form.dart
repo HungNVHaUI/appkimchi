@@ -209,7 +209,12 @@ class CreateNoteForm extends StatelessWidget {
                     flex: 2,
                     child: TextFormField(
                       controller: controller.createQty,
-                      keyboardType: TextInputType.number,
+                      // SỬA TẠI ĐÂY: Cho phép nhập số thập phân
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      // THÊM FORMATTER: Chỉ cho phép nhập số và dấu chấm/phẩy
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      ],
                       decoration: const InputDecoration(
                           labelText: TTexts.createQty),
                       onChanged: (_) =>
@@ -301,7 +306,8 @@ class CreateNoteForm extends StatelessWidget {
                         Flexible(
                           flex: 2,
                           child: TextFormField(
-                            initialValue: p.qty.toString(),
+                            // Sử dụng replaceAll để xóa .0 nếu là số nguyên cho đẹp mắt
+                            initialValue: p.qty.toString().replaceAll(RegExp(r'\.0$'), ''),
                             readOnly: true,
                             decoration: const InputDecoration(labelText: TTexts.createQty),
                           ),

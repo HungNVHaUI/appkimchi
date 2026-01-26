@@ -136,7 +136,6 @@ class CreateNoteController extends GetxController {
   /// =================================================
   /// ⭐ 3. TỰ ĐIỀN SĐT KHI CHỌN KHÁCH
   Future<void> fillInfoFromHistory(String client) async {
-    print('👉 load history for $client');
 
     clientName.text = client;
 
@@ -146,14 +145,12 @@ class CreateNoteController extends GetxController {
         .get();
 
     if (snap.docs.isEmpty) {
-      print('❌ no history found');
       return;
     }
 
     /// ✅ SĐT
     final phone = snap.docs.first.data()['phoneNumber'];
     phoneNumber.text = phone ?? '';
-    print('✅ phone = $phone');
 
     final Map<String, ProductHistory> map = {};
 
@@ -167,7 +164,7 @@ class CreateNoteController extends GetxController {
         if (name == null) continue;
 
         map[name] = ProductHistory(
-          price: (p['price'] ?? 0).toInt(),
+          price: (p['price'] ?? 0).toDouble(),
           unit: p['unit'] ?? '',
         );
       }
@@ -230,13 +227,20 @@ class CreateNoteController extends GetxController {
   }
 
   void recalculateCreateTotal() {
-    final p =
-        int.tryParse(createPrice.text.replaceAll(RegExp(r'[^0-9]'), '')) ??
-            0;
-    final q = int.tryParse(createQty.text) ?? 0;
-    createTotal.text =
-        NumberFormat('#,###', 'vi_VN').format(p * q);
+    // Giá thường là số nguyên lớn (VND), vẫn có thể dùng int hoặc double
+    final p = double.tryParse(createPrice.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+
+    // SỐ LƯỢNG: Phải dùng double.tryParse để hiểu được số 2.5
+    final q = double.tryParse(createQty.text) ?? 0;
+
+    // Tính tổng
+    final total = p * q;
+
+    // Hiển thị kết quả format theo định dạng tiền tệ VN
+    createTotal.text = NumberFormat('#,###', 'vi_VN').format(total);
   }
+
+
 
   /// =================================================
   /// 6. THÊM SẢN PHẨM
@@ -244,7 +248,7 @@ class CreateNoteController extends GetxController {
     final price =
         double.tryParse(createPrice.text.replaceAll(RegExp(r'[^0-9]'), '')) ??
             0;
-    final qty = int.tryParse(createQty.text) ?? 0;
+    final qty = double.tryParse(createQty.text) ?? 0;
 
     if (qty <= 0) {
       TLoaders.warningSnackBar(

@@ -142,14 +142,20 @@ class NoteDetailScreen extends StatelessWidget {
                                         }),
                                       ),
                                       const SizedBox(width: TSizes.xs),
+                                      // QTY
                                       Flexible(
                                         flex: 2,
                                         child: Obx(
                                               () => TextFormField(
-                                            initialValue: (product['qty'] as int).toString(),
+                                            // SỬA 1: initialValue dùng double và xóa .0 thừa
+                                            initialValue: (product['qty'] as num).toString().replaceAll(RegExp(r'\.0$'), ''),
                                             readOnly: !controller.isEditing.value,
-                                            keyboardType: TextInputType.number,
-                                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                            // SỬA 2: Cho phép bàn phím hiện dấu chấm
+                                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                            // SỬA 3: Cho phép nhập số và dấu chấm (thay vì digitsOnly)
+                                            inputFormatters: [
+                                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                                            ],
                                             onChanged: (value) => controller.updateProductQty(index, value),
                                             decoration: const InputDecoration(labelText: TTexts.createQty),
                                           ),

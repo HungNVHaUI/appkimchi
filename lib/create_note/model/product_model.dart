@@ -1,15 +1,15 @@
 class ProductModel {
   final String nameProduct;
   final double price;
-  final int qty;
-  final String unit;      // ⭐ THÊM MỚI
+  final double qty; // ⭐ SỬA TỪ int SANG double
+  final String unit;
   final double total;
 
   ProductModel({
     required this.nameProduct,
     required this.price,
     required this.qty,
-    required this.unit,    // ⭐ THÊM MỚI
+    required this.unit,
     required this.total,
   });
 
@@ -17,8 +17,9 @@ class ProductModel {
     return ProductModel(
       nameProduct: map['nameProduct'] ?? '',
       price: (map['price'] as num?)?.toDouble() ?? 0.0,
-      qty: (map['qty'] as num?)?.toInt() ?? 0,
-      unit: map['unit'] ?? '',         // ⭐ THÊM MỚI
+      // ⭐ SỬA: Dùng .toDouble() thay vì .toInt()
+      qty: (map['qty'] as num?)?.toDouble() ?? 0.0,
+      unit: map['unit'] ?? '',
       total: (map['total'] as num?)?.toDouble() ?? 0.0,
     );
   }
@@ -27,8 +28,8 @@ class ProductModel {
     return {
       'nameProduct': nameProduct,
       'price': price,
-      'qty': qty,
-      'unit': unit,        // ⭐ THÊM MỚI
+      'qty': qty, // Giờ là double nên Firebase sẽ lưu được 2.5
+      'unit': unit,
       'total': total,
     };
   }
